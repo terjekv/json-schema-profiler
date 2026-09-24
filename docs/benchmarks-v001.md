@@ -112,7 +112,8 @@ cargo bench --bench validation_gungraun --locked -- --save-summary=json
 The two targets add 41 timing cases and 12 instruction/allocation cases. The PR
 workflow remains pinned to `rust-pr-bench` v1.3.0, discovers six targets and uses
 longer Criterion measurements. Its matrix and metric readers were checked against
-all 106 timing and 35 instruction results. Hosted GitHub execution still requires
-a configured remote. DHAT allocation totals are evidence, not an automatic
+all 106 timing and 35 instruction results. The [hosted CI trial](ci-trial.md)
+checks the complete PR integration against an unchanged implementation.
+DHAT allocation totals are evidence, not an automatic
 v1.3.0 regression gate. Intentional feature costs and shared-runner timing noise
 must be assessed when reviewing a performance regression.

@@ -195,8 +195,8 @@ npx --yes markdownlint-cli2@0.23.3 --config .markdownlint.json "**/*.md" "!targe
 
 See [benchmark methodology and commands](docs/benchmarks.md). PR comparison uses
 `terjekv/rust-pr-bench` v1.3.0, pinned to its release commit, with both Criterion
-and Gungraun. CI checks all six benchmark targets. The local repository has no
-remote yet, so hosted PR execution has not been exercised.
+and Gungraun. CI checks all six benchmark targets. See the
+[hosted CI trial](docs/ci-trial.md) for the comparison contract and review steps.
 
 ## License
 

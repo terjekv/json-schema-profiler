@@ -1,9 +1,10 @@
 # Release readiness and compatibility
 
 The implementation targets v0.0.1 and remains unreleased with `publish = false`.
-Repository/docs.rs metadata name intended locations; no remote repository,
-release tag or registry publication has been created. Hosted PR benchmarks remain
-to be exercised after repository publication.
+The source repository is [terjekv/json-schema-profiler](https://github.com/terjekv/json-schema-profiler).
+No release tag or registry publication has been created; the docs.rs URL remains
+an intended publication location. The [hosted CI trial](ci-trial.md) describes
+verification of the first PR comparison.
 
 ## Rust and dependencies
 
@@ -29,8 +30,8 @@ API returned HTTP 403 from this environment. Neither spelling appeared indexed;
 this is not a name reservation or a guarantee of publishing rights. Recheck
 availability when intentionally preparing publication.
 
-Before publication, confirm/configure the intended repository, run hosted
-CI/benchmark comparison, prepare dated 0.0.1 changelog/README release entries,
+Before publication, review hosted CI/benchmark comparison results,
+prepare dated 0.0.1 changelog/README release entries,
 and intentionally remove `publish = false`.
 
 ## Compatibility
