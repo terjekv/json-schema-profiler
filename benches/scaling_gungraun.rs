@@ -1,0 +1,48 @@
+use std::hint::black_box;
+
+use gungraun::{Dhat, LibraryBenchmarkConfig, library_benchmark, library_benchmark_group, main};
+use json_schema_profiler::{ProfilePath, Profiler, ProfilerOptions, Scope};
+use serde_json::Value;
+
+mod support;
+
+fn setup(
+    workload: &'static str,
+    documents: usize,
+    width: usize,
+    selected: bool,
+) -> (Vec<Value>, ProfilerOptions) {
+    let scope = if selected {
+        Scope::selected([ProfilePath::root().property("hardware")]).unwrap()
+    } else {
+        Scope::default()
+    };
+    (
+        support::corpus(workload, documents, width),
+        ProfilerOptions::default().with_scope(scope),
+    )
+}
+
+#[library_benchmark(setup = setup)]
+#[bench::documents_64("homogeneous", 64, 8, false)]
+#[bench::documents_1024("homogeneous", 1024, 8, false)]
+#[bench::width_16("wide", 64, 16, false)]
+#[bench::width_64("wide", 64, 64, false)]
+#[bench::width_256("wide", 64, 256, false)]
+#[bench::depth_8("deep", 64, 8, false)]
+#[bench::depth_32("deep", 64, 32, false)]
+#[bench::dynamic_128("dynamic", 128, 1, false)]
+#[bench::dynamic_1024("dynamic", 1024, 1, false)]
+#[bench::scope_whole("selection", 64, 32, false)]
+#[bench::scope_selected("selection", 64, 32, true)]
+fn scaling((corpus, options): (Vec<Value>, ProfilerOptions)) -> Vec<Value> {
+    let mut profiler = Profiler::new(options);
+    for value in black_box(&corpus) {
+        profiler.observe(value).unwrap();
+    }
+    black_box(profiler.finish().unwrap());
+    corpus
+}
+
+library_benchmark_group!(name = scales; benchmarks = scaling);
+main!(config = LibraryBenchmarkConfig::default().tool(Dhat::with_args(["--num-callers=256"])); library_benchmark_groups = scales);

@@ -1,0 +1,54 @@
+[package]
+name = "json-schema-profiler"
+version = "0.0.1"
+edition = "2024"
+rust-version = "1.90"
+description = "Profile JSON document corpora and assess candidate JSON Schemas."
+repository = "https://github.com/terjekv/json-schema-profiler"
+documentation = "https://docs.rs/json-schema-profiler"
+license = "MIT"
+readme = "README.md"
+publish = false
+keywords = ["json", "json-schema", "profiling", "validation"]
+categories = ["data-structures", "encoding"]
+
+[dependencies]
+jsonschema = { version = "=0.49.9", default-features = false, features = ["arbitrary-precision"] }
+schema_analysis = "=0.7.0"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["arbitrary_precision"] }
+
+[dev-dependencies]
+criterion = "0.8.2"
+gungraun = "=0.19.4"
+rstest = "0.26"
+
+[[bench]]
+name = "profiling_criterion"
+harness = false
+
+[[bench]]
+name = "policies_criterion"
+harness = false
+
+[[bench]]
+name = "profiling_gungraun"
+harness = false
+
+[[bench]]
+name = "scaling_gungraun"
+harness = false
+
+[[bench]]
+name = "validation_criterion"
+harness = false
+
+[[bench]]
+name = "validation_gungraun"
+harness = false
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[profile.bench]
+debug = 1

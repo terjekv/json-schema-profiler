@@ -1,0 +1,1745 @@
+{
+  "date": "2026-09-24",
+  "host": "Linux x86_64, Intel Xeon Silver 4216 @ 2.10 GHz, 32 logical CPUs; shared host",
+  "rustc": "1.98.0",
+  "msrv_tested": "1.90.0",
+  "valgrind": "3.26.0",
+  "gungraun": "0.19.4",
+  "criterion": {
+    "samples": 30,
+    "warmup_seconds": 0.3,
+    "measurement_seconds": 1,
+    "statistic": "median"
+  },
+  "dhat_num_callers": 256,
+  "notes": [
+    "Setup and input teardown are excluded except in parse-and-profile.",
+    "Profiling timings measured before the isolated validation coverage optimization; profiling logic unchanged.",
+    "Criterion compilation is warmed; Gungraun compilation includes process-local initialization.",
+    "DHAT totals are cumulative allocations, not peak live memory."
+  ],
+  "source_sha256": {
+    "Cargo.lock": "a2a7b74ea3b6ced6d5a23eed1c04d6b0df010ad4e0b131307b44bd66fa86958a",
+    "Cargo.toml": "5af1012aa8f4dc6fb381c1bb6b9e6695ea5e08d1a811b04c2c09b229090ef77e",
+    "README.md": "5a67d91f7c31d8b3589571d7f6cc21d72a3ec35a2eeb9d1d214727a20d413870",
+    "benches/policies_criterion.rs": "9c422a6cb0622417dff077812990e482e10b383e2af0a4ddfa93837b166b0e40",
+    "benches/profiling_criterion.rs": "337aba815b983e7b1b29e7a2cde3e23c11ffa6560fa5392b1816940f9dfd52a8",
+    "benches/profiling_gungraun.rs": "24cb663f5d5cf166637a7961e174bc2d2c7fac1f2f1f59457eb70d24e06ee48d",
+    "benches/scaling_gungraun.rs": "dc2b2682b4612b08f5e219c259e166e21f4f0ed40bb3d8c13724e52fb6f46303",
+    "benches/support/mod.rs": "7cec2c4858ad0b2f933eef7f1736bbe2128b3ba106b02c9179d8bd7681d003d1",
+    "benches/upstream/mod.rs": "267ad9ffb1a39aa21e4345226eda53bbb43ad571e87796d9779fbe883a767b4f",
+    "benches/validation_criterion.rs": "2c4be1d51bacefcc62cde5cfcad697c4b42ea8381d0860c2f619e8666a0146a2",
+    "benches/validation_gungraun.rs": "2d133025d50f33b3371a777dd5abe00647cb584fe15db81ca212217b7905ce0e",
+    "benches/validation_support/mod.rs": "bae2d17ce115a4673b0a1640a725c34d8c446887c729d32ac159f2429603bb22",
+    "src/adapter.rs": "75429fcd85176b8dedf0789d1b6500813ec7b5742d928d8857191efa84179c93",
+    "src/bounded.rs": "dc9da7b93d5fb4acd083a51f3d7521e014dcae9d783bf7209050c668ee0467b7",
+    "src/error.rs": "463398a5761b57b4218ae6e2971367c854c89c735716abd31aee9c876e3a27ba",
+    "src/evidence.rs": "5b98619e553cbbd7e0b319dfc34ce497270bbc0523b67dee6e5697e3c6484e77",
+    "src/lib.rs": "c6ef8025df060dc751b076a866de7807cfcc956ad152be00cef6db4a7ff14cb7",
+    "src/limits.rs": "a5493380b354ed4600e5249c53dc0e47ed376561e7ed9f1317da6757218770ec",
+    "src/numbers.rs": "2c2c92f8e8dbd07567b5a91b7c793f53f051116fcb586a5e965d0377aa22ea73",
+    "src/path.rs": "fdb364970e03bfb55378d98125671740ed6d7e7f4bb523927313ca9e0e2ddc07",
+    "src/policy.rs": "63da410bb8a0b57e9a68325e515a1125d99443e0b29aa849a76130c449602c59",
+    "src/profile.rs": "bf8d69e5318ca7b0c39156cb578ca0347a6b673883e95d222e66d946df60c911",
+    "src/profiler.rs": "e2163a23d66b80475aa372380da3db31b7c3021a709c56671531433030f8177f",
+    "src/schema_guard.rs": "9c4707c52617e81c0a8844102bf8f149c692e9b45670da7a8a6c0352763fe095",
+    "src/scope.rs": "7b5e2dbcdd865de57abc70efd01a7580a39b38bcfa789b3f5ee8637617732ba2",
+    "src/statistics.rs": "ad2fd0f6e457c568820bf824a8d1d4efae98e95be1fcb2af6b87778d1783feae",
+    "src/validation.rs": "c2bd9f7bc2216e56b9781b1e1b95661441fa08165c1ac0ae28c83ffb668af87b",
+    "src/value_limits.rs": "1fa13015cb2082f56e5a42759b9fbfc94d516c6636e1b2b8e164c870d20ba3e4"
+  },
+  "results": {
+    "criterion": [
+      {
+        "case": "arrays/counts/1024",
+        "median_ns": 6968805.4,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 6961460.3,
+          "upper_bound": 6980975.7
+        }
+      },
+      {
+        "case": "arrays/counts/64",
+        "median_ns": 429071.28725490195,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 428665.675,
+          "upper_bound": 429700.3771929825
+        }
+      },
+      {
+        "case": "arrays/default/1024",
+        "median_ns": 8451663.375,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 8440589.625,
+          "upper_bound": 8455786.375
+        }
+      },
+      {
+        "case": "arrays/default/64",
+        "median_ns": 520769.64575163403,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 520676.3041871921,
+          "upper_bound": 520916.145
+        }
+      },
+      {
+        "case": "arrays/minimal/1024",
+        "median_ns": 4795084.214285715,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 4791196.071428571,
+          "upper_bound": 4797049.857142857
+        }
+      },
+      {
+        "case": "arrays/minimal/64",
+        "median_ns": 292725.6932692308,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 292396.6253654971,
+          "upper_bound": 292965.24813988095
+        }
+      },
+      {
+        "case": "arrays/profiler/1024",
+        "median_ns": 9542992.5,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 9512808.5,
+          "upper_bound": 9561270.25
+        }
+      },
+      {
+        "case": "arrays/profiler/64",
+        "median_ns": 599395.3619791667,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 599166.0713141025,
+          "upper_bound": 600092.7619047619
+        }
+      },
+      {
+        "case": "compilation/conditional",
+        "median_ns": 22273.586356942025,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 22251.71091065292,
+          "upper_bound": 22333.963788659792
+        }
+      },
+      {
+        "case": "compilation/decimal",
+        "median_ns": 10092.192273135668,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 10078.098172169812,
+          "upper_bound": 10101.05837264151
+        }
+      },
+      {
+        "case": "compilation/references",
+        "median_ns": 20778.283216783217,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 20748.68048878205,
+          "upper_bound": 20853.888344881223
+        }
+      },
+      {
+        "case": "compilation/structural",
+        "median_ns": 17426.377208856717,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 17409.510953356752,
+          "upper_bound": 17442.266798964625
+        }
+      },
+      {
+        "case": "deep/counts/1024",
+        "median_ns": 4324853.9375,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 4308832.75,
+          "upper_bound": 4328446.5
+        }
+      },
+      {
+        "case": "deep/counts/64",
+        "median_ns": 256872.70238095237,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 256748.48425925925,
+          "upper_bound": 257059.06703703705
+        }
+      },
+      {
+        "case": "deep/default/1024",
+        "median_ns": 3242519.7647058824,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 3240433.057692308,
+          "upper_bound": 3246689.166666667
+        }
+      },
+      {
+        "case": "deep/default/64",
+        "median_ns": 189892.375,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 189662.93464052287,
+          "upper_bound": 190830.3546474359
+        }
+      },
+      {
+        "case": "deep/minimal/1024",
+        "median_ns": 3185142.275,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 3183905.828947368,
+          "upper_bound": 3189595.4529411765
+        }
+      },
+      {
+        "case": "deep/minimal/64",
+        "median_ns": 186418.40972222222,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 186340.14992559524,
+          "upper_bound": 186506.82779180695
+        }
+      },
+      {
+        "case": "deep/profiler/1024",
+        "median_ns": 5621983.416666666,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 5612194.083333334,
+          "upper_bound": 5648414.916666666
+        }
+      },
+      {
+        "case": "deep/profiler/64",
+        "median_ns": 456324.95714285714,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 456136.9166666667,
+          "upper_bound": 456849.52
+        }
+      },
+      {
+        "case": "evaluation/conditional_coverage/1024",
+        "median_ns": 206581.837012987,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 206521.6652892562,
+          "upper_bound": 206998.27991452994
+        }
+      },
+      {
+        "case": "evaluation/conditional_coverage/64",
+        "median_ns": 13601.315461121158,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 13563.314609704641,
+          "upper_bound": 13657.226434466887
+        }
+      },
+      {
+        "case": "evaluation/conditional_diagnostics/1024",
+        "median_ns": 299072.59479166666,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 298761.17441502464,
+          "upper_bound": 299567.6609375
+        }
+      },
+      {
+        "case": "evaluation/conditional_diagnostics/64",
+        "median_ns": 19187.9453125,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 19162.31904761905,
+          "upper_bound": 19232.00363860278
+        }
+      },
+      {
+        "case": "evaluation/conditional_raw_flag/1024",
+        "median_ns": 67008.47010416666,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 66989.20546875,
+          "upper_bound": 67022.79747023809
+        }
+      },
+      {
+        "case": "evaluation/conditional_raw_flag/64",
+        "median_ns": 4145.629205409974,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 4144.020124643875,
+          "upper_bound": 4147.526397435898
+        }
+      },
+      {
+        "case": "evaluation/decimal_coverage/1024",
+        "median_ns": 2046203.4490595611,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 2045931.026190476,
+          "upper_bound": 2046394.096153846
+        }
+      },
+      {
+        "case": "evaluation/decimal_coverage/64",
+        "median_ns": 112660.09560185185,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 112572.3097826087,
+          "upper_bound": 112809.43787878787
+        }
+      },
+      {
+        "case": "evaluation/decimal_diagnostics/1024",
+        "median_ns": 2138684.9910714286,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 2138087.638888889,
+          "upper_bound": 2139013.659722222
+        }
+      },
+      {
+        "case": "evaluation/decimal_diagnostics/64",
+        "median_ns": 119688.88076051373,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 119311.03270676691,
+          "upper_bound": 119724.25220290545
+        }
+      },
+      {
+        "case": "evaluation/decimal_raw_flag/1024",
+        "median_ns": 1997309.5333333332,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 1997109.757936508,
+          "upper_bound": 1997487.5676470587
+        }
+      },
+      {
+        "case": "evaluation/decimal_raw_flag/64",
+        "median_ns": 109893.78833333333,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 109816.21875,
+          "upper_bound": 109946.60513392856
+        }
+      },
+      {
+        "case": "evaluation/invalid_coverage/1024",
+        "median_ns": 250526.36570881226,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 250477.9959114959,
+          "upper_bound": 250753.6666666667
+        }
+      },
+      {
+        "case": "evaluation/invalid_coverage/64",
+        "median_ns": 16304.306738437,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 16298.447109988778,
+          "upper_bound": 16309.042207792209
+        }
+      },
+      {
+        "case": "evaluation/invalid_diagnostics/1024",
+        "median_ns": 569928.5011160714,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 569775.6574675324,
+          "upper_bound": 570072.5528846154
+        }
+      },
+      {
+        "case": "evaluation/invalid_diagnostics/64",
+        "median_ns": 245784.0027777778,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 245679.025,
+          "upper_bound": 245934.26203703703
+        }
+      },
+      {
+        "case": "evaluation/invalid_raw_flag/1024",
+        "median_ns": 46208.49390070922,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 46158.40967675942,
+          "upper_bound": 46265.518892149674
+        }
+      },
+      {
+        "case": "evaluation/invalid_raw_flag/64",
+        "median_ns": 2471.115899283424,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 2467.195248454086,
+          "upper_bound": 2472.97665518561
+        }
+      },
+      {
+        "case": "evaluation/references_coverage/1024",
+        "median_ns": 3109157.7995689656,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 3108394.1280701756,
+          "upper_bound": 3109772.403846154
+        }
+      },
+      {
+        "case": "evaluation/references_coverage/64",
+        "median_ns": 194864.3369047619,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 194835.00684731937,
+          "upper_bound": 194926.09796626985
+        }
+      },
+      {
+        "case": "evaluation/references_diagnostics/1024",
+        "median_ns": 6096362.833333333,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 6093790.833333334,
+          "upper_bound": 6098160.0
+        }
+      },
+      {
+        "case": "evaluation/references_diagnostics/64",
+        "median_ns": 381440.9347222223,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 381366.24329501914,
+          "upper_bound": 381499.5223809524
+        }
+      },
+      {
+        "case": "evaluation/references_raw_flag/1024",
+        "median_ns": 2033252.2395833335,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 2032830.4821428573,
+          "upper_bound": 2034081.4490909092
+        }
+      },
+      {
+        "case": "evaluation/references_raw_flag/64",
+        "median_ns": 126216.36752136753,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 126187.15062938756,
+          "upper_bound": 126239.50844704354
+        }
+      },
+      {
+        "case": "evaluation/structural_coverage/1024",
+        "median_ns": 223598.96363636362,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 223549.82730769232,
+          "upper_bound": 223637.21177884616
+        }
+      },
+      {
+        "case": "evaluation/structural_coverage/64",
+        "median_ns": 14574.986990279755,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 14571.541344916346,
+          "upper_bound": 14579.075103950105
+        }
+      },
+      {
+        "case": "evaluation/structural_diagnostics/1024",
+        "median_ns": 405664.5172839506,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 405532.8333333334,
+          "upper_bound": 405745.83974358975
+        }
+      },
+      {
+        "case": "evaluation/structural_diagnostics/64",
+        "median_ns": 25941.635140562248,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 25937.282279116465,
+          "upper_bound": 25946.30286056507
+        }
+      },
+      {
+        "case": "evaluation/structural_raw_flag/1024",
+        "median_ns": 85879.0423076923,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 85837.434,
+          "upper_bound": 85922.4041025641
+        }
+      },
+      {
+        "case": "evaluation/structural_raw_flag/64",
+        "median_ns": 5081.219171159029,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 5076.042657916325,
+          "upper_bound": 5084.997504027636
+        }
+      },
+      {
+        "case": "evidence/anonymous/1024",
+        "median_ns": 408547.24404761905,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 406471.32570207573,
+          "upper_bound": 409024.9972222222
+        }
+      },
+      {
+        "case": "evidence/anonymous/64",
+        "median_ns": 30462.868935837243,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 30450.459154929576,
+          "upper_bound": 30473.469567404427
+        }
+      },
+      {
+        "case": "evidence/bounded_ids/1024",
+        "median_ns": 436610.05,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 434307.8694814815,
+          "upper_bound": 436832.8333333334
+        }
+      },
+      {
+        "case": "evidence/bounded_ids/64",
+        "median_ns": 33723.70680147059,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 33658.88946314102,
+          "upper_bound": 33754.84127604167
+        }
+      },
+      {
+        "case": "evidence/disabled_ids/1024",
+        "median_ns": 438314.60625,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 436764.021415608,
+          "upper_bound": 438376.2194805195
+        }
+      },
+      {
+        "case": "evidence/disabled_ids/64",
+        "median_ns": 32246.75604122246,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 32216.59488272921,
+          "upper_bound": 32320.00696517413
+        }
+      },
+      {
+        "case": "generation/deep/expansive",
+        "median_ns": 248767.39190548012,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 248679.11233019852,
+          "upper_bound": 248956.1458333333
+        }
+      },
+      {
+        "case": "generation/deep/strict",
+        "median_ns": 126684.97588235294,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 126636.24859943977,
+          "upper_bound": 126789.97083333333
+        }
+      },
+      {
+        "case": "generation/dynamic/expansive",
+        "median_ns": 1464317.2797619049,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 1463595.5648148148,
+          "upper_bound": 1466066.917929293
+        }
+      },
+      {
+        "case": "generation/dynamic/strict",
+        "median_ns": 1464062.9544117646,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 1463129.2723214286,
+          "upper_bound": 1465055.4190821256
+        }
+      },
+      {
+        "case": "generation/homogeneous/expansive",
+        "median_ns": 8620.48084584738,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 8606.077873690423,
+          "upper_bound": 8627.38076266363
+        }
+      },
+      {
+        "case": "generation/homogeneous/strict",
+        "median_ns": 7413.623113549493,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 7409.402711045244,
+          "upper_bound": 7424.0871886121
+        }
+      },
+      {
+        "case": "generation/mixed/expansive",
+        "median_ns": 7244.250830959165,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 7242.624059606482,
+          "upper_bound": 7244.580119460979
+        }
+      },
+      {
+        "case": "generation/mixed/strict",
+        "median_ns": 793.5608717966264,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 792.692951854318,
+          "upper_bound": 806.2425823320127
+        }
+      },
+      {
+        "case": "generation/sparse/expansive",
+        "median_ns": 56468.868421052626,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 56431.05681511471,
+          "upper_bound": 56520.61372180451
+        }
+      },
+      {
+        "case": "generation/sparse/strict",
+        "median_ns": 55647.63927738927,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 55601.64779202279,
+          "upper_bound": 55798.39951786106
+        }
+      },
+      {
+        "case": "generation/wide/expansive",
+        "median_ns": 349901.2704968944,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 349800.2368421053,
+          "upper_bound": 349955.37084278156
+        }
+      },
+      {
+        "case": "generation/wide/strict",
+        "median_ns": 320396.37770400516,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 320281.68787515,
+          "upper_bound": 320514.34505494504
+        }
+      },
+      {
+        "case": "homogeneous/counts/1024",
+        "median_ns": 821184.696969697,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 819852.3668478262,
+          "upper_bound": 829817.8111111111
+        }
+      },
+      {
+        "case": "homogeneous/counts/64",
+        "median_ns": 53134.74796747968,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 53081.34130706692,
+          "upper_bound": 53161.23503325942
+        }
+      },
+      {
+        "case": "homogeneous/default/1024",
+        "median_ns": 997545.35,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 995600.152097902,
+          "upper_bound": 1008781.4888888889
+        }
+      },
+      {
+        "case": "homogeneous/default/64",
+        "median_ns": 63743.141201935316,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 63290.31045751634,
+          "upper_bound": 63874.85046136101
+        }
+      },
+      {
+        "case": "homogeneous/minimal/1024",
+        "median_ns": 549471.4513888889,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 549213.3186063219,
+          "upper_bound": 549886.4659090908
+        }
+      },
+      {
+        "case": "homogeneous/minimal/64",
+        "median_ns": 34341.76111111111,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 34319.72420928865,
+          "upper_bound": 34351.98436041083
+        }
+      },
+      {
+        "case": "homogeneous/profiler/1024",
+        "median_ns": 1122729.6071428573,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 1122173.2714285715,
+          "upper_bound": 1123537.3035714286
+        }
+      },
+      {
+        "case": "homogeneous/profiler/64",
+        "median_ns": 82194.57431773879,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 82144.54472934472,
+          "upper_bound": 82220.21675084175
+        }
+      },
+      {
+        "case": "mixed/counts/1024",
+        "median_ns": 492378.94782608695,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 474969.98,
+          "upper_bound": 492529.0134615385
+        }
+      },
+      {
+        "case": "mixed/counts/64",
+        "median_ns": 31179.217212931995,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 31165.123984710943,
+          "upper_bound": 31234.757946656922
+        }
+      },
+      {
+        "case": "mixed/default/1024",
+        "median_ns": 598343.049019608,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 597812.3537946428,
+          "upper_bound": 603270.3079545455
+        }
+      },
+      {
+        "case": "mixed/default/64",
+        "median_ns": 37755.30603448275,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 37686.63006189213,
+          "upper_bound": 38008.46803791087
+        }
+      },
+      {
+        "case": "mixed/minimal/1024",
+        "median_ns": 348693.3518907563,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 348048.31593406596,
+          "upper_bound": 348899.94904531864
+        }
+      },
+      {
+        "case": "mixed/minimal/64",
+        "median_ns": 22173.787536443146,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 22164.676085818945,
+          "upper_bound": 22243.642770876468
+        }
+      },
+      {
+        "case": "mixed/profiler/1024",
+        "median_ns": 623419.2871739131,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 621943.5856481481,
+          "upper_bound": 624947.5104166667
+        }
+      },
+      {
+        "case": "mixed/profiler/64",
+        "median_ns": 47560.307971014496,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 47545.77028985507,
+          "upper_bound": 47587.11902173913
+        }
+      },
+      {
+        "case": "parse_and_profile_1024",
+        "median_ns": 2865744.1490384615,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 2863762.3571428573,
+          "upper_bound": 2869033.275862069
+        }
+      },
+      {
+        "case": "profile_generate_verify_1024",
+        "median_ns": 858477.1111111111,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 856318.0113636364,
+          "upper_bound": 858906.380952381
+        }
+      },
+      {
+        "case": "scope/selected/1024",
+        "median_ns": 413123.939484127,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 412962.9551282051,
+          "upper_bound": 413672.16333333333
+        }
+      },
+      {
+        "case": "scope/selected/64",
+        "median_ns": 31297.86775362319,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 31273.8618729097,
+          "upper_bound": 31326.826414768806
+        }
+      },
+      {
+        "case": "scope/whole/1024",
+        "median_ns": 17539937.25,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 17133718.75,
+          "upper_bound": 17740622.25
+        }
+      },
+      {
+        "case": "scope/whole/64",
+        "median_ns": 1001943.8462643678,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 1000556.111111111,
+          "upper_bound": 1003062.3093567251
+        }
+      },
+      {
+        "case": "sparse/counts/1024",
+        "median_ns": 6997688.0,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 6986802.199999999,
+          "upper_bound": 7007390.300000001
+        }
+      },
+      {
+        "case": "sparse/counts/64",
+        "median_ns": 439643.66000000003,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 439576.71904761903,
+          "upper_bound": 439718.1115384615
+        }
+      },
+      {
+        "case": "sparse/default/1024",
+        "median_ns": 5655562.0,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 5618274.416666666,
+          "upper_bound": 5674425.583333334
+        }
+      },
+      {
+        "case": "sparse/default/64",
+        "median_ns": 349243.14285714284,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 348977.817251462,
+          "upper_bound": 349968.42976190476
+        }
+      },
+      {
+        "case": "sparse/minimal/1024",
+        "median_ns": 5289856.571428571,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 5283335.142857143,
+          "upper_bound": 5296813.714285715
+        }
+      },
+      {
+        "case": "sparse/minimal/64",
+        "median_ns": 334598.525,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 334364.60622710624,
+          "upper_bound": 334686.5625
+        }
+      },
+      {
+        "case": "sparse/profiler/1024",
+        "median_ns": 8885697.25,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 8876395.25,
+          "upper_bound": 8893634.0
+        }
+      },
+      {
+        "case": "sparse/profiler/64",
+        "median_ns": 620314.26875,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 620107.1840277778,
+          "upper_bound": 620603.712823276
+        }
+      },
+      {
+        "case": "wide/counts/1024",
+        "median_ns": 84363940.0,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 84305489.5,
+          "upper_bound": 84405248.0
+        }
+      },
+      {
+        "case": "wide/counts/64",
+        "median_ns": 5234943.428571429,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 5230229.285714285,
+          "upper_bound": 5238539.357142856
+        }
+      },
+      {
+        "case": "wide/default/1024",
+        "median_ns": 74918412.5,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 74859880.0,
+          "upper_bound": 75036024.5
+        }
+      },
+      {
+        "case": "wide/default/64",
+        "median_ns": 4675097.8125,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 4670858.4375,
+          "upper_bound": 4678565.0
+        }
+      },
+      {
+        "case": "wide/minimal/1024",
+        "median_ns": 73851989.0,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 73775862.0,
+          "upper_bound": 73950271.0
+        }
+      },
+      {
+        "case": "wide/minimal/64",
+        "median_ns": 4569212.6875,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 4563864.1875,
+          "upper_bound": 4572144.0
+        }
+      },
+      {
+        "case": "wide/profiler/1024",
+        "median_ns": 101200275.0,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 101002051.5,
+          "upper_bound": 101281767.0
+        }
+      },
+      {
+        "case": "wide/profiler/64",
+        "median_ns": 6459614.083333334,
+        "ci95": {
+          "confidence_level": 0.95,
+          "lower_bound": 6456267.333333334,
+          "upper_bound": 6462836.083333334
+        }
+      }
+    ],
+    "gungraun": [
+      {
+        "case": "profiling_gungraun::comparisons::compare::arrays_counts",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 13919589
+          },
+          "Dhat": {
+            "TotalBytes": 517050,
+            "TotalBlocks": 29330
+          }
+        }
+      },
+      {
+        "case": "profiling_gungraun::comparisons::compare::arrays_profiler",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 18371481
+          },
+          "Dhat": {
+            "TotalBytes": 529597,
+            "TotalBlocks": 29385
+          }
+        }
+      },
+      {
+        "case": "profiling_gungraun::comparisons::compare::homogeneous_counts",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 860123
+          },
+          "Dhat": {
+            "TotalBytes": 35486,
+            "TotalBlocks": 1813
+          }
+        }
+      },
+      {
+        "case": "profiling_gungraun::comparisons::compare::homogeneous_default",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 6287923
+          },
+          "Dhat": {
+            "TotalBytes": 2902300,
+            "TotalBlocks": 8524
+          }
+        }
+      },
+      {
+        "case": "profiling_gungraun::comparisons::compare::homogeneous_minimal",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 576902
+          },
+          "Dhat": {
+            "TotalBytes": 30334,
+            "TotalBlocks": 1043
+          }
+        }
+      },
+      {
+        "case": "profiling_gungraun::comparisons::compare::homogeneous_profiler",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 1210094
+          },
+          "Dhat": {
+            "TotalBytes": 47763,
+            "TotalBlocks": 1863
+          }
+        }
+      },
+      {
+        "case": "profiling_gungraun::comparisons::compare::sparse_counts",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 6570626
+          },
+          "Dhat": {
+            "TotalBytes": 257898,
+            "TotalBlocks": 6042
+          }
+        }
+      },
+      {
+        "case": "profiling_gungraun::comparisons::compare::sparse_default",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 5163804
+          },
+          "Dhat": {
+            "TotalBytes": 238652,
+            "TotalBlocks": 3339
+          }
+        }
+      },
+      {
+        "case": "profiling_gungraun::comparisons::compare::sparse_minimal",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 5003990
+          },
+          "Dhat": {
+            "TotalBytes": 225532,
+            "TotalBlocks": 3307
+          }
+        }
+      },
+      {
+        "case": "profiling_gungraun::comparisons::compare::sparse_profiler",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 8745693
+          },
+          "Dhat": {
+            "TotalBytes": 370746,
+            "TotalBlocks": 6229
+          }
+        }
+      },
+      {
+        "case": "profiling_gungraun::comparisons::compare::wide_counts",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 9686806
+          },
+          "Dhat": {
+            "TotalBytes": 285676,
+            "TotalBlocks": 8784
+          }
+        }
+      },
+      {
+        "case": "profiling_gungraun::comparisons::compare::wide_profiler",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 12603542
+          },
+          "Dhat": {
+            "TotalBytes": 398892,
+            "TotalBlocks": 8972
+          }
+        }
+      },
+      {
+        "case": "scaling_gungraun::scales::scaling::depth_32",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 4094402
+          },
+          "Dhat": {
+            "TotalBytes": 453820,
+            "TotalBlocks": 7601
+          }
+        }
+      },
+      {
+        "case": "scaling_gungraun::scales::scaling::depth_8",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 873228
+          },
+          "Dhat": {
+            "TotalBytes": 92248,
+            "TotalBlocks": 1712
+          }
+        }
+      },
+      {
+        "case": "scaling_gungraun::scales::scaling::documents_1024",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 9016431
+          },
+          "Dhat": {
+            "TotalBytes": 275323,
+            "TotalBlocks": 14406
+          }
+        }
+      },
+      {
+        "case": "scaling_gungraun::scales::scaling::documents_64",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 653121
+          },
+          "Dhat": {
+            "TotalBytes": 31483,
+            "TotalBlocks": 966
+          }
+        }
+      },
+      {
+        "case": "scaling_gungraun::scales::scaling::dynamic_1024",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 42791190
+          },
+          "Dhat": {
+            "TotalBytes": 4237910,
+            "TotalBlocks": 9709
+          }
+        }
+      },
+      {
+        "case": "scaling_gungraun::scales::scaling::dynamic_128",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 2754427
+          },
+          "Dhat": {
+            "TotalBytes": 524838,
+            "TotalBlocks": 1246
+          }
+        }
+      },
+      {
+        "case": "scaling_gungraun::scales::scaling::scope_selected",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 258448
+          },
+          "Dhat": {
+            "TotalBytes": 21929,
+            "TotalBlocks": 418
+          }
+        }
+      },
+      {
+        "case": "scaling_gungraun::scales::scaling::scope_whole",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 7795977
+          },
+          "Dhat": {
+            "TotalBytes": 265082,
+            "TotalBlocks": 10838
+          }
+        }
+      },
+      {
+        "case": "scaling_gungraun::scales::scaling::width_16",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 2641181
+          },
+          "Dhat": {
+            "TotalBytes": 122388,
+            "TotalBlocks": 2383
+          }
+        }
+      },
+      {
+        "case": "scaling_gungraun::scales::scaling::width_256",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 178424712
+          },
+          "Dhat": {
+            "TotalBytes": 2139956,
+            "TotalBlocks": 35162
+          }
+        }
+      },
+      {
+        "case": "scaling_gungraun::scales::scaling::width_64",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 17856414
+          },
+          "Dhat": {
+            "TotalBytes": 527980,
+            "TotalBlocks": 9021
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::compilation::conditional",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 5929078
+          },
+          "Dhat": {
+            "TotalBytes": 998616,
+            "TotalBlocks": 6780
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::compilation::decimal",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 5869169
+          },
+          "Dhat": {
+            "TotalBytes": 992940,
+            "TotalBlocks": 6693
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::compilation::references",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 5920624
+          },
+          "Dhat": {
+            "TotalBytes": 997585,
+            "TotalBlocks": 6763
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::compilation::structural",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 5908090
+          },
+          "Dhat": {
+            "TotalBytes": 996579,
+            "TotalBlocks": 6753
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::evaluation::conditional_128",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 291762
+          },
+          "Dhat": {
+            "TotalBytes": 10240,
+            "TotalBlocks": 384
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::evaluation::decimal_128",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 1760248
+          },
+          "Dhat": {
+            "TotalBytes": 7332,
+            "TotalBlocks": 768
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::evaluation::invalid_1024_coverage",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 2030388
+          },
+          "Dhat": {
+            "TotalBytes": 258048,
+            "TotalBlocks": 2048
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::evaluation::invalid_1024_diagnostics",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 4267733
+          },
+          "Dhat": {
+            "TotalBytes": 391132,
+            "TotalBlocks": 3770
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::evaluation::invalid_64_diagnostics",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 1859277
+          },
+          "Dhat": {
+            "TotalBytes": 128736,
+            "TotalBlocks": 1415
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::evaluation::references_128",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 6009679
+          },
+          "Dhat": {
+            "TotalBytes": 313344,
+            "TotalBlocks": 8576
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::evaluation::structural_1024",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 3243263
+          },
+          "Dhat": {
+            "TotalBytes": 114688,
+            "TotalBlocks": 4096
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::evaluation::structural_64",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 204918
+          },
+          "Dhat": {
+            "TotalBytes": 7168,
+            "TotalBlocks": 256
+          }
+        }
+      }
+    ]
+  },
+  "before_coverage_optimization": {
+    "criterion": [
+      {
+        "case": "profile_generate_verify_1024",
+        "median_ns": 859416.25
+      },
+      {
+        "case": "compilation/structural",
+        "median_ns": 17410.685959974984
+      },
+      {
+        "case": "compilation/references",
+        "median_ns": 20729.94737912949
+      },
+      {
+        "case": "compilation/conditional",
+        "median_ns": 22119.819587628866
+      },
+      {
+        "case": "compilation/decimal",
+        "median_ns": 10305.936657092907
+      },
+      {
+        "case": "evaluation/structural_diagnostics/64",
+        "median_ns": 25935.292887458927
+      },
+      {
+        "case": "evaluation/structural_diagnostics/1024",
+        "median_ns": 405886.8402014652
+      },
+      {
+        "case": "evaluation/structural_coverage/64",
+        "median_ns": 25933.055223245923
+      },
+      {
+        "case": "evaluation/structural_coverage/1024",
+        "median_ns": 407783.2502289377
+      },
+      {
+        "case": "evaluation/structural_raw_flag/64",
+        "median_ns": 5094.707938388626
+      },
+      {
+        "case": "evaluation/structural_raw_flag/1024",
+        "median_ns": 81561.77571599939
+      },
+      {
+        "case": "evaluation/invalid_diagnostics/64",
+        "median_ns": 231510.31687500002
+      },
+      {
+        "case": "evaluation/invalid_diagnostics/1024",
+        "median_ns": 1113795.3
+      },
+      {
+        "case": "evaluation/invalid_coverage/64",
+        "median_ns": 54052.637083333335
+      },
+      {
+        "case": "evaluation/invalid_coverage/1024",
+        "median_ns": 855723.8063218391
+      },
+      {
+        "case": "evaluation/invalid_raw_flag/64",
+        "median_ns": 2449.6774233229457
+      },
+      {
+        "case": "evaluation/invalid_raw_flag/1024",
+        "median_ns": 46351.664228723406
+      },
+      {
+        "case": "evaluation/references_diagnostics/64",
+        "median_ns": 386284.19444444444
+      },
+      {
+        "case": "evaluation/references_diagnostics/1024",
+        "median_ns": 6169828.916666667
+      },
+      {
+        "case": "evaluation/references_coverage/64",
+        "median_ns": 386044.24561403506
+      },
+      {
+        "case": "evaluation/references_coverage/1024",
+        "median_ns": 6170225.5
+      },
+      {
+        "case": "evaluation/references_raw_flag/64",
+        "median_ns": 124442.56820382475
+      },
+      {
+        "case": "evaluation/references_raw_flag/1024",
+        "median_ns": 2014508.4027777778
+      },
+      {
+        "case": "evaluation/conditional_diagnostics/64",
+        "median_ns": 19239.57282913165
+      },
+      {
+        "case": "evaluation/conditional_diagnostics/1024",
+        "median_ns": 296558.94845085475
+      },
+      {
+        "case": "evaluation/conditional_coverage/64",
+        "median_ns": 19218.708035714284
+      },
+      {
+        "case": "evaluation/conditional_coverage/1024",
+        "median_ns": 298904.7604166666
+      },
+      {
+        "case": "evaluation/conditional_raw_flag/64",
+        "median_ns": 4284.763649107275
+      },
+      {
+        "case": "evaluation/conditional_raw_flag/1024",
+        "median_ns": 68948.26041666666
+      },
+      {
+        "case": "evaluation/decimal_diagnostics/64",
+        "median_ns": 118769.39298245613
+      },
+      {
+        "case": "evaluation/decimal_diagnostics/1024",
+        "median_ns": 2151456.1705128206
+      },
+      {
+        "case": "evaluation/decimal_coverage/64",
+        "median_ns": 118760.11890838206
+      },
+      {
+        "case": "evaluation/decimal_coverage/1024",
+        "median_ns": 2151012.47167756
+      },
+      {
+        "case": "evaluation/decimal_raw_flag/64",
+        "median_ns": 109487.46179187192
+      },
+      {
+        "case": "evaluation/decimal_raw_flag/1024",
+        "median_ns": 2007459.35
+      },
+      {
+        "case": "evidence/anonymous/64",
+        "median_ns": 30622.909624413143
+      },
+      {
+        "case": "evidence/anonymous/1024",
+        "median_ns": 410154.8055555555
+      },
+      {
+        "case": "evidence/bounded_ids/64",
+        "median_ns": 33702.628446691175
+      },
+      {
+        "case": "evidence/bounded_ids/1024",
+        "median_ns": 445145.5825396825
+      },
+      {
+        "case": "evidence/disabled_ids/64",
+        "median_ns": 32547.246492704828
+      },
+      {
+        "case": "evidence/disabled_ids/1024",
+        "median_ns": 441439.58
+      }
+    ],
+    "gungraun": [
+      {
+        "case": "validation_gungraun::replay::evaluation::structural_64",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 203739
+          },
+          "Dhat": {
+            "TotalBytes": 7168,
+            "TotalBlocks": 256
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::evaluation::structural_1024",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 3214331
+          },
+          "Dhat": {
+            "TotalBytes": 114688,
+            "TotalBlocks": 4096
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::evaluation::invalid_64_diagnostics",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 1856335
+          },
+          "Dhat": {
+            "TotalBytes": 128736,
+            "TotalBlocks": 1415
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::evaluation::invalid_1024_diagnostics",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 8087073
+          },
+          "Dhat": {
+            "TotalBytes": 1183742,
+            "TotalBlocks": 15964
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::evaluation::invalid_1024_coverage",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 6203710
+          },
+          "Dhat": {
+            "TotalBytes": 1123328,
+            "TotalBlocks": 15360
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::evaluation::references_128",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 5998412
+          },
+          "Dhat": {
+            "TotalBytes": 313344,
+            "TotalBlocks": 8576
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::evaluation::conditional_128",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 289521
+          },
+          "Dhat": {
+            "TotalBytes": 10240,
+            "TotalBlocks": 384
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::evaluation::decimal_128",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 1758004
+          },
+          "Dhat": {
+            "TotalBytes": 7332,
+            "TotalBlocks": 768
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::compilation::structural",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 5907428
+          },
+          "Dhat": {
+            "TotalBytes": 996579,
+            "TotalBlocks": 6753
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::compilation::references",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 5916056
+          },
+          "Dhat": {
+            "TotalBytes": 997585,
+            "TotalBlocks": 6763
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::compilation::conditional",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 5927011
+          },
+          "Dhat": {
+            "TotalBytes": 998616,
+            "TotalBlocks": 6780
+          }
+        }
+      },
+      {
+        "case": "validation_gungraun::replay::compilation::decimal",
+        "metrics": {
+          "Callgrind": {
+            "Ir": 5866922
+          },
+          "Dhat": {
+            "TotalBytes": 992940,
+            "TotalBlocks": 6693
+          }
+        }
+      }
+    ]
+  }
+}
