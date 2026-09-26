@@ -13,6 +13,7 @@ state independently of report retention.
 | Suggestion | At most 128 disjoint overrides; findings, schema bytes and suggestion bytes | Explicit error; no partial candidate |
 | Compilation | Schema nodes/depth/bytes/numbers, supported references, expansion depth and regex limits | Compilation/configuration error |
 | Replay input | Documents and per-document nodes/depth/bytes/numbers | Incomplete evaluation; offending document uncounted |
+| Replay source | First caller error, including document-limit lookahead | Incomplete evaluation; error returned separately; no further polling |
 | Replay diagnostics | Global/per-document entries and complete encoded report bytes | Truncate diagnostics while continuing coverage |
 
 Compact JSON checks use a bounded counting sink, avoiding a second serialized
@@ -42,6 +43,12 @@ No instance scalar samples are retained in profiles or wrapper diagnostics.
 Compiled schemas and verified evidence do retain the schema, including its
 `const`, `enum`, examples and other literals. IDs and property names may also
 contain sensitive metadata.
+
+Fallible replay reports retain only the source failure's input index. The
+nonserializable `ReplayError<E>` wrapper owns the original caller error without
+cloning or formatting it; its size and contents are caller-controlled and outside
+the report-byte budget. Wrapper `Debug`/`Display` output omits the error payload,
+while explicit accessors and the standard error source chain expose it.
 
 Tests cover cumulative admission, repeated array paths, failed finalization,
 witness truncation, escaped output budgets, schema limits, reference cycles/depth,

@@ -4,6 +4,9 @@
 
 ### Added
 
+- Fallible replay evaluation and verification through `try_evaluate` and
+  `try_verify`, preserving caller errors separately from bounded reports and
+  preventing source failures from producing verified corpus evidence.
 - Experimental incremental corpus profiling backed by `schema_analysis` 0.7.0,
   with exact missing/null/type occurrence counts and arbitrary-precision number
   classification.
@@ -30,6 +33,10 @@
 
 ### Changed
 
+- **Breaking:** `EvaluationStop` now includes `InputError { document_index }`.
+  Update exhaustive matches and serialized-report consumers to handle the
+  `input_error` reason. Existing `evaluate`/`verify` signatures and infallible
+  report output are unchanged; use the fallible methods for sources that can fail.
 - **Breaking:** `Profile::suggest` now returns `Result<Suggestion, InferenceError>`;
   callers must handle output-budget errors before examining a suggestion. Use
   `suggest_with` for per-path policies and custom output limits.

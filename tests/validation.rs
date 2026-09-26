@@ -1,6 +1,8 @@
+use std::{cell::Cell, error::Error, io};
+
 use json_schema_profiler::{
     CompiledSchema, Document, DocumentId, EvaluationOptions, EvaluationStatus, EvaluationStop,
-    FormatPolicy, SchemaError, SchemaOptions, ValueLimit, ValueLimits,
+    FormatPolicy, SchemaError, SchemaOptions, ValueLimit, ValueLimits, VerificationError,
 };
 use rstest::rstest;
 use serde_json::{Value, json};
@@ -320,6 +322,285 @@ fn completed_nonempty_replay_can_create_verified_evidence() {
             .valid(),
         1
     );
+}
+
+#[rstest]
+#[case(0)]
+#[case(1)]
+#[case(2)]
+fn input_failure_stops_without_counting_or_polling_another_record(#[case] prefix: usize) {
+    let value = json!(1);
+    let polls = Cell::new(0);
+    let replay = std::iter::from_fn(|| {
+        let index = polls.get();
+        polls.set(index + 1);
+        assert!(index <= prefix, "polled after source failure");
+        Some(if index == prefix {
+            Err("read failed")
+        } else {
+            Ok(Document::new(&value))
+        })
+    });
+    let error = compile(&json!({"type":"integer"}))
+        .try_evaluate(replay, EvaluationOptions::default())
+        .unwrap_err();
+    let report = error.evaluation();
+    assert_eq!(polls.get(), prefix + 1);
+    assert_eq!(
+        (report.processed(), report.valid(), report.invalid()),
+        (prefix as u64, prefix as u64, 0)
+    );
+    assert_eq!(
+        report.status(),
+        &EvaluationStatus::Incomplete(EvaluationStop::InputError {
+            document_index: prefix as u64,
+        })
+    );
+    assert!(!report.all_valid());
+    assert!(report.diagnostics().is_empty());
+    assert!(!report.diagnostics_truncated());
+}
+
+#[rstest]
+#[case(4, 2, false)]
+#[case(1, 1, true)]
+#[case(0, 0, true)]
+fn input_failure_preserves_coverage_independently_of_diagnostic_caps(
+    #[case] cap: usize,
+    #[case] retained: usize,
+    #[case] truncated: bool,
+) {
+    let values = [json!("invalid"), json!(1), json!(false)];
+    let id = DocumentId::new("record").unwrap();
+    let replay = values
+        .iter()
+        .map(|value| Ok(Document::new(value).with_id(&id)))
+        .chain([Err("source failed")]);
+    let error = compile(&json!({"type":"integer"}))
+        .try_evaluate(
+            replay,
+            EvaluationOptions::default().with_diagnostic_limits(cap, cap),
+        )
+        .unwrap_err();
+    let report = error.evaluation();
+    assert_eq!(
+        (report.processed(), report.valid(), report.invalid()),
+        (3, 1, 2)
+    );
+    assert_eq!(report.diagnostics().len(), retained);
+    assert_eq!(report.diagnostics_truncated(), truncated);
+    for (diagnostic, index) in report.diagnostics().iter().zip([0, 2]) {
+        assert_eq!(diagnostic.document_index(), index);
+        assert_eq!(diagnostic.document_id(), Some(&id));
+        assert_eq!(diagnostic.keyword(), "type");
+    }
+    assert_eq!(
+        report.status(),
+        &EvaluationStatus::Incomplete(EvaluationStop::InputError { document_index: 3 })
+    );
+}
+
+#[rstest]
+#[case(0)]
+#[case(1)]
+fn input_failure_in_document_limit_lookahead_is_preserved(#[case] limit: usize) {
+    let value = json!(1);
+    let mut replay = (0..limit)
+        .map(|_| Ok(Document::new(&value)))
+        .chain([Err("lookahead failed"), Ok(Document::new(&value))]);
+    let error = compile(&json!(true))
+        .try_evaluate(
+            &mut replay,
+            EvaluationOptions::default().with_document_limit(limit),
+        )
+        .unwrap_err();
+    assert_eq!(error.input_error(), &"lookahead failed");
+    assert_eq!(error.evaluation().processed(), limit as u64);
+    assert_eq!(
+        error.evaluation().status(),
+        &EvaluationStatus::Incomplete(EvaluationStop::InputError {
+            document_index: limit as u64,
+        })
+    );
+    assert!(matches!(replay.next(), Some(Ok(_))));
+}
+
+#[test]
+fn document_limit_does_not_poll_beyond_a_successful_lookahead() {
+    let value = json!(1);
+    let mut replay = [
+        Ok(Document::new(&value)),
+        Ok(Document::new(&value)),
+        Err("not reached"),
+    ]
+    .into_iter();
+    let report = compile(&json!(true))
+        .try_evaluate(
+            &mut replay,
+            EvaluationOptions::default().with_document_limit(1),
+        )
+        .unwrap();
+    assert_eq!(report.processed(), 1);
+    assert_eq!(
+        report.status(),
+        &EvaluationStatus::Incomplete(EvaluationStop::DocumentLimit)
+    );
+    assert!(matches!(replay.next(), Some(Err("not reached"))));
+}
+
+#[test]
+fn value_limit_stops_before_a_later_source_error() {
+    let value = json!([1]);
+    let mut replay = [Ok(Document::new(&value)), Err("not reached")].into_iter();
+    let report = compile(&json!(true))
+        .try_evaluate(
+            &mut replay,
+            EvaluationOptions::default().with_value_limits(ValueLimits::new(1, 10, 1000).unwrap()),
+        )
+        .unwrap();
+    assert_eq!(report.processed(), 0);
+    assert_eq!(
+        report.status(),
+        &EvaluationStatus::Incomplete(EvaluationStop::ValueLimit {
+            document_index: 0,
+            limit: ValueLimit::Nodes,
+        })
+    );
+    assert!(matches!(replay.next(), Some(Err("not reached"))));
+}
+
+#[rstest]
+#[case(EvaluationOptions::default())]
+#[case(EvaluationOptions::default().with_document_limit(0))]
+#[case(EvaluationOptions::default().with_document_limit(1))]
+#[case(EvaluationOptions::default().with_document_limit(2))]
+#[case(EvaluationOptions::default().with_diagnostic_limits(0, 0))]
+#[case(EvaluationOptions::default().with_report_bytes(512).unwrap())]
+#[case(EvaluationOptions::default().with_value_limits(ValueLimits::new(1, 10, 1).unwrap()))]
+fn successful_source_preserves_infallible_evaluation_semantics(#[case] options: EvaluationOptions) {
+    let schema = CompiledSchema::new(
+        &json!({"format":"email"}),
+        SchemaOptions::default().with_formats(FormatPolicy::Assert),
+    )
+    .unwrap();
+    let values = [json!("user@example.com"), json!("bad address")];
+    let replay = || values.iter().map(Document::new);
+    let infallible = schema.evaluate(replay(), options.clone());
+    let fallible = schema
+        .try_evaluate(replay().map(Ok::<_, ()>), options)
+        .unwrap();
+    assert_eq!(
+        serde_json::to_value(infallible).unwrap(),
+        serde_json::to_value(fallible).unwrap()
+    );
+}
+
+#[test]
+fn input_error_payload_is_recoverable_without_error_or_formatting_traits() {
+    struct SourceError(Vec<u8>);
+
+    let payload = SourceError(vec![1, 2, 3]);
+    let allocation = payload.0.as_ptr();
+    let error = compile(&json!(true))
+        .try_evaluate([Err(payload)], EvaluationOptions::default())
+        .unwrap_err();
+    assert_eq!(error.input_error().0.as_ptr(), allocation);
+    let (report, recovered) = error.into_parts();
+    assert_eq!(recovered.0.as_ptr(), allocation);
+    assert!(!report.all_valid());
+}
+
+#[test]
+fn input_error_payload_is_excluded_from_reports_and_wrapper_formatting() {
+    let error = compile(&json!(true))
+        .try_verify(
+            [Err(io::Error::other("private-source-payload"))],
+            EvaluationOptions::default().with_report_bytes(512).unwrap(),
+        )
+        .unwrap_err();
+    let encoded = serde_json::to_string(error.evaluation()).unwrap();
+    assert!(encoded.len() <= 512);
+    assert!(!encoded.contains("private-source-payload"));
+    assert!(!format!("{error:?} {error}").contains("private-source-payload"));
+    assert_eq!(
+        serde_json::to_value(error.evaluation().status()).unwrap(),
+        json!({"status":"incomplete","detail":{"reason":"input_error","document_index":0}})
+    );
+    // Following the explicit error chain exposes the caller's original error.
+    assert_eq!(
+        error.source().unwrap().source().unwrap().to_string(),
+        "private-source-payload"
+    );
+}
+
+#[test]
+fn input_failure_preserves_the_report_budget_after_diagnostic_truncation() {
+    let value = json!({"x".repeat(2000): "private"});
+    let error = compile(&json!({"additionalProperties":{"type":"integer"}}))
+        .try_evaluate(
+            [Ok(Document::new(&value)), Err("read failed")],
+            EvaluationOptions::default().with_report_bytes(512).unwrap(),
+        )
+        .unwrap_err();
+    let report = error.evaluation();
+    assert_eq!(report.invalid(), 1);
+    assert!(report.diagnostics_truncated());
+    assert!(serde_json::to_vec(report).unwrap().len() <= 512);
+    assert_eq!(
+        report.status(),
+        &EvaluationStatus::Incomplete(EvaluationStop::InputError { document_index: 1 })
+    );
+}
+
+#[rstest]
+#[case(0)]
+#[case(1)]
+fn source_failure_cannot_create_verified_evidence(#[case] prefix: usize) {
+    let value = json!(1);
+    let replay = (0..prefix)
+        .map(|_| Ok(Document::new(&value)))
+        .chain([Err("read failed")]);
+    let error = compile(&json!({"type":"integer"}))
+        .try_verify(replay, EvaluationOptions::default())
+        .unwrap_err();
+    assert!(!error.evaluation().all_valid());
+    assert!(matches!(error, VerificationError::Input(_)));
+}
+
+#[rstest]
+#[case(vec![], EvaluationOptions::default(), EvaluationStatus::Complete)]
+#[case(vec![], EvaluationOptions::default().with_document_limit(0), EvaluationStatus::Complete)]
+#[case(vec![json!("invalid")], EvaluationOptions::default(), EvaluationStatus::Complete)]
+#[case(vec![json!(1), json!(2)], EvaluationOptions::default().with_document_limit(1),
+    EvaluationStatus::Incomplete(EvaluationStop::DocumentLimit))]
+fn fallible_verification_distinguishes_coverage_failures_from_source_errors(
+    #[case] values: Vec<Value>,
+    #[case] options: EvaluationOptions,
+    #[case] status: EvaluationStatus,
+) {
+    let error = compile(&json!({"type":"integer"}))
+        .try_verify(
+            values.iter().map(|value| Ok::<_, ()>(Document::new(value))),
+            options,
+        )
+        .unwrap_err();
+    assert_eq!(error.evaluation().status(), &status);
+    assert!(matches!(error, VerificationError::Evaluation(_)));
+}
+
+#[test]
+fn completed_nonempty_fallible_replay_can_create_verified_evidence() {
+    let schema = compile(&json!({"type":"integer"}));
+    let value = json!(1);
+    let verified = schema
+        .try_verify(
+            [Ok::<_, ()>(Document::new(&value))],
+            EvaluationOptions::default().with_document_limit(1),
+        )
+        .unwrap();
+    assert_eq!(verified.schema(), schema.schema());
+    assert_eq!(verified.evaluation().status(), &EvaluationStatus::Complete);
+    assert_eq!(verified.evaluation().valid(), 1);
 }
 
 #[rstest]
