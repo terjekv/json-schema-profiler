@@ -5,6 +5,7 @@ use json_schema_profiler::{ProfilePath, Profiler, ProfilerOptions, Scope};
 use serde_json::Value;
 
 mod support;
+mod upstream;
 
 fn setup(
     workload: &'static str,
@@ -29,6 +30,8 @@ fn setup(
 #[bench::width_16("wide", 64, 16, false)]
 #[bench::width_64("wide", 64, 64, false)]
 #[bench::width_256("wide", 64, 256, false)]
+#[bench::width_1024("wide", 64, 1024, false)]
+#[bench::sparse_256("sparse", 64, 256, false)]
 #[bench::depth_8("deep", 64, 8, false)]
 #[bench::depth_32("deep", 64, 32, false)]
 #[bench::dynamic_128("dynamic", 128, 1, false)]
@@ -44,5 +47,20 @@ fn scaling((corpus, options): (Vec<Value>, ProfilerOptions)) -> Vec<Value> {
     corpus
 }
 
-library_benchmark_group!(name = scales; benchmarks = scaling);
+fn setup_counts(workload: &str, width: usize) -> Vec<Value> {
+    support::corpus(workload, 64, width)
+}
+
+#[library_benchmark(setup = setup_counts)]
+#[bench::width_16("wide", 16)]
+#[bench::width_64("wide", 64)]
+#[bench::width_256("wide", 256)]
+#[bench::width_1024("wide", 1024)]
+#[bench::sparse_256("sparse", 256)]
+fn upstream_counts(corpus: Vec<Value>) -> Vec<Value> {
+    upstream::run("counts", black_box(&corpus));
+    corpus
+}
+
+library_benchmark_group!(name = scales; benchmarks = scaling, upstream_counts);
 main!(config = LibraryBenchmarkConfig::default().tool(Dhat::with_args(["--num-callers=256"])); library_benchmark_groups = scales);

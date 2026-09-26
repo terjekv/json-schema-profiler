@@ -32,5 +32,22 @@ fn compare(c: &mut Criterion) {
     }
 }
 
-criterion_group! { name = benches; config = Criterion::default().sample_size(40).warm_up_time(Duration::from_secs(1)).measurement_time(Duration::from_secs(3)); targets = compare }
+fn width_scaling(c: &mut Criterion) {
+    let mut group = c.benchmark_group("width_scaling");
+    for workload in ["wide", "sparse"] {
+        for width in [16, 64, 256, 1024] {
+            let corpus = support::corpus(workload, 64, width);
+            for engine in ["counts", "profiler"] {
+                group.bench_with_input(
+                    BenchmarkId::new(format!("{workload}/{engine}"), width),
+                    &corpus,
+                    |b, corpus| b.iter(|| upstream::run(engine, black_box(corpus))),
+                );
+            }
+        }
+    }
+    group.finish();
+}
+
+criterion_group! { name = benches; config = Criterion::default().sample_size(40).warm_up_time(Duration::from_secs(1)).measurement_time(Duration::from_secs(3)); targets = compare, width_scaling }
 criterion_main!(benches);

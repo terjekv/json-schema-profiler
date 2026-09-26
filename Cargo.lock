@@ -640,7 +640,8 @@ dependencies = [
  "gungraun",
  "jsonschema",
  "rstest",
- "schema_analysis",
+ "schema_analysis 0.7.0",
+ "schema_analysis 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde",
  "serde_json",
 ]
@@ -1209,6 +1210,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93fc1dc3aaa9bfed95e02e6eadabb4baf7e3078b0bd1b4d7b6b0b68378900502"
 dependencies = [
  "winapi-util",
+]
+
+[[package]]
+name = "schema_analysis"
+version = "0.7.0"
+dependencies = [
+ "once_cell",
+ "ordered-float",
+ "ordermap",
+ "regex",
+ "serde",
 ]
 
 [[package]]

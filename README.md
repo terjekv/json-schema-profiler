@@ -3,6 +3,8 @@
 An experimental Rust library that profiles JSON document corpora and proposes
 JSON Schemas with explicit policies. It uses `schema_analysis` 0.7.0 internally
 for structural aggregation, with a counters-only context and a JSON input adapter.
+The dependency currently includes a [local object-presence optimization](docs/wide-objects.md)
+that removes repeated key scans while preserving upstream aggregation behavior.
 
 **Status: v0.0.1 implementation, unreleased.** Profiling, document evidence,
 subtree selection, per-path policies, candidate generation and bounded replay

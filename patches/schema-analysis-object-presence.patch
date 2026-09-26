@@ -1,0 +1,86 @@
+--- a/schema_analysis/src/analysis/schema_seed.rs
++++ b/schema_analysis/src/analysis/schema_seed.rs
+@@ -8,6 +8,48 @@
+     schema::SchemaVisitor,
+ };
+ 
++// OrderMap indices stay stable while this visitor only appends fields. Keep the
++// first 64 flags inline so small objects need no presence-tracking allocation
++// or variable bit shifts. Wider objects use compact spill words.
++struct SeenFields {
++    first: [bool; 64],
++    rest: Vec<u64>,
++}
++
++impl SeenFields {
++    fn new(fields: usize) -> Self {
++        Self {
++            first: [false; 64],
++            rest: vec![0; fields.saturating_sub(64).div_ceil(64)],
++        }
++    }
++
++    fn insert(&mut self, index: usize) -> bool {
++        if index < 64 {
++            let duplicate = self.first[index];
++            self.first[index] = true;
++            return duplicate;
++        }
++        let offset = index / 64 - 1;
++        if offset >= self.rest.len() {
++            self.rest.resize(offset + 1, 0);
++        }
++        let word = &mut self.rest[offset];
++        let bit = 1 << (index % 64);
++        let duplicate = *word & bit != 0;
++        *word |= bit;
++        duplicate
++    }
++
++    fn contains(&self, index: usize) -> bool {
++        if index < 64 {
++            return self.first[index];
++        }
++        let word = self.rest.get(index / 64 - 1).copied().unwrap_or(0);
++        word & (1 << (index % 64)) != 0
++    }
++}
++
+ pub(super) struct SchemaVisitorSeed<'s, C: Context> {
+     pub(super) schema: &'s mut Schema<C>,
+ }
+@@ -216,10 +258,11 @@
+                 fields,
+                 context: aggregators,
+             } => {
++                let mut seen = SeenFields::new(fields.len());
+                 while let Some(key) = map.next_key::<String>()? {
+-                    match fields.get_mut(&key) {
+-                        Some(old_field) => {
+-                            old_field.status.allow_duplicates(keys.contains(&key));
++                    match fields.get_full_mut(&key) {
++                        Some((index, _, old_field)) => {
++                            old_field.status.allow_duplicates(seen.insert(index));
+                             map.next_value_seed(InferredFieldSeed { field: old_field })?;
+                         }
+ 
+@@ -228,7 +271,7 @@
+                             // If we are adding it to an existing schema it means that it was
+                             // missing when this schema was created.
+                             new_field.status.may_be_missing = true;
+-                            new_field.status.allow_duplicates(keys.contains(&key));
++                            seen.insert(fields.len());
+                             fields.insert(key.clone(), new_field);
+                         }
+                     }
+@@ -236,8 +279,8 @@
+                     keys.push(key);
+                 }
+ 
+-                for (k, f) in fields {
+-                    if !keys.contains(k) {
++                for (index, (_, f)) in fields.iter_mut().enumerate() {
++                    if !seen.contains(index) {
+                         f.status.may_be_missing = true;
+                     }
+                 }
