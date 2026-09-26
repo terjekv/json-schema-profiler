@@ -7,6 +7,13 @@ alternative licenses allow a permissive MIT/Apache option; the inventory does
 not select LGPL for an `OR` expression. Unicode, Zlib and other listed notice
 requirements still apply to the corresponding dependencies.
 
+The local `schema_analysis` 0.7.0 runtime copy retains its original
+[MIT](../vendor/schema_analysis/LICENSE-MIT) and
+[Apache-2.0](../vendor/schema_analysis/LICENSE-APACHE) license texts. Its runtime
+dependencies are unchanged. The registry copy of the same version is also used
+as a development-only differential-test oracle; both copies have the same
+declared license shown below. See the [patch provenance](../vendor/schema_analysis/README.md).
+
 | Package | Version | Declared license |
 | --- | --- | --- |
 | `ahash` | 0.8.12 | MIT OR Apache-2.0 |

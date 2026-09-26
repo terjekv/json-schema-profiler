@@ -2,7 +2,9 @@
 
 These are the initial adapter measurements, before document evidence, output
 budget checks and public replay validation were added. See the
-[v0.0.1 measurements](benchmarks-v001.md) for the current implementation.
+[v0.0.1 measurements](benchmarks-v001.md) for the subsequent implementation and
+the [wide-object investigation](wide-objects.md) for the later presence-tracking
+optimization and expanded scaling coverage.
 
 Measured 2026-09-24 on a shared Linux x86_64 host, Intel Xeon Silver 4216 at
 2.10 GHz, 32 logical CPUs, Rust 1.98.0 and Valgrind 3.26.0. Results are exploratory
@@ -160,3 +162,12 @@ comparison or publication.
 
 The v0.0.1 run extends discovery to six targets and adds 41 Criterion and 12
 Gungraun cases for validation, compilation, evidence and the complete workflow.
+
+The wide-object work adds 16 Criterion cases to `profiling_criterion` and seven
+Gungraun cases to `scaling_gungraun`, retaining all six benchmark targets. The
+current suite has 122 timing cases and 42 instruction/allocation cases. The new
+cases compare wide/sparse objects and raw upstream counters with the profiler,
+including width 1,024. They are discovered by the existing CI configuration;
+regression thresholds remain unchanged. Local before/after measurements use the
+same expanded harness on both revisions, since new cases are absent from the
+historical base commit.

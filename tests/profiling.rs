@@ -21,6 +21,64 @@ fn schema(profile: &Profile, policy: InferencePolicy) -> Value {
 }
 
 #[rstest]
+#[case(65)]
+#[case(1025)]
+fn wide_object_occurrences_and_document_contributions_remain_distinct(#[case] width: usize) {
+    let object = |value: Value| {
+        Value::Object(
+            (0..width)
+                .map(|index| (format!("field/~{index}"), value.clone()))
+                .collect(),
+        )
+    };
+    let documents = [
+        json!([object(json!(1)), object(json!(1)), {}]),
+        json!([object(Value::Null)]),
+    ];
+    let report = profile(&documents);
+    for index in 0..width {
+        let field = report
+            .field(
+                &ProfilePath::root()
+                    .each_item()
+                    .property(format!("field/~{index}")),
+            )
+            .unwrap();
+        assert_eq!(
+            (field.applicable_parents(), field.present(), field.missing()),
+            (4, 3, 1)
+        );
+        assert_eq!(field.types().get(JsonKind::Integer), 2);
+        assert_eq!(field.types().get(JsonKind::Null), 1);
+        assert_eq!(field.evidence().documents(), 2);
+        assert_eq!(field.evidence().types().get(JsonKind::Integer), 1);
+        assert_eq!(field.evidence().types().get(JsonKind::Null), 1);
+    }
+}
+
+#[rstest]
+#[case(65)]
+#[case(1025)]
+fn wide_object_candidate_is_deterministic_and_rejects_unobserved_types(#[case] width: usize) {
+    let object = Value::Object(
+        (0..width)
+            .map(|index| (format!("field_{index}"), json!(index)))
+            .collect(),
+    );
+    let documents = [object, json!({})];
+    let candidate = schema(&profile(&documents), InferencePolicy::strict());
+    let reversed = [documents[1].clone(), documents[0].clone()];
+    assert_eq!(
+        candidate,
+        schema(&profile(&reversed), InferencePolicy::strict())
+    );
+    let validator = jsonschema::draft202012::new(&candidate).unwrap();
+    assert!(documents.iter().all(|value| validator.is_valid(value)));
+    assert!(!validator.is_valid(&json!({"field_0":"unexpected"})));
+    assert!(!validator.is_valid(&json!({"additional":1})));
+}
+
+#[rstest]
 #[case("1", JsonKind::Integer)]
 #[case("1.0", JsonKind::Integer)]
 #[case("1e0", JsonKind::Integer)]

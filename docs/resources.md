@@ -26,6 +26,12 @@ The index/upstream tree add collection overhead. Empty-array item placeholders
 have no observed-path slot and can add report nodes. Witness bytes count every
 retained ID copy rather than assuming shared storage.
 
+The upstream object visitor tracks presence by retained field index. The first
+64 flags occupy 64 inline bytes; wider objects allocate additional packed
+words, including growth when new fields appear. This scratch storage follows
+the already admitted object structure and is released after the object visit.
+It adds neither retained document values nor new persistent per-field state.
+
 Complete values are preflighted before validation, including literal schema
 annotation payloads during compilation. Number tokens are capped at 1,024 bytes
 and exponent magnitude 4,096 to prevent unbounded decimal expansion. Profiling

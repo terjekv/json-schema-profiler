@@ -66,7 +66,8 @@ There is no separate full-document preflight pass.
 3. **Wide objects:** the object visitor repeatedly tests membership in a `Vec`
    of keys for previously known fields. Inspection suggests quadratic work with
    width; the wide-object benchmarks show a steep cost in both raw upstream and
-   the wrapper. Improve this with a focused benchmark-backed upstream patch.
+   the wrapper. The [wide-object investigation](wide-objects.md) confirms this
+   cause and records the local patch and upstream adoption plan.
 4. **Observation and budget hooks:** field-level counts and fallible traversal
    hooks would simplify our integration. These are broader API changes, less
    urgent than correctness fixes and measured hot paths.

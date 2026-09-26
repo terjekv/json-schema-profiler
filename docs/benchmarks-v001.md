@@ -5,6 +5,7 @@ policies and replay validation. All 106 Criterion and 35 Gungraun cases ran.
 Use the [initial report](benchmarks.md) for fixture/baseline definitions and
 the [complete results](benchmark-results-v001.json) for medians, confidence
 intervals, instruction/allocation counts and source hashes.
+These results predate the [wide-object optimization](wide-objects.md).
 
 The shared host and measurement settings match the initial experiment: Rust
 1.98.0, Intel Xeon Silver 4216, Criterion 30 samples / 0.3 s warmup / requested
