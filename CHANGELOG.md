@@ -4,6 +4,9 @@
 
 ### Added
 
+- Standalone synthetic inventory consumer and CI coverage demonstrating snapshot
+  identity/revisions, reviewed policies, fallible replay, bounded diagnostics and
+  rejection of stale schema application. The library API is unchanged.
 - Fallible replay evaluation and verification through `try_evaluate` and
   `try_verify`, preserving caller errors separately from bounded reports and
   preventing source failures from producing verified corpus evidence.

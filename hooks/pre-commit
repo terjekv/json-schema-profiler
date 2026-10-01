@@ -5,4 +5,8 @@ cargo fmt --all -- --check
 cargo clippy --all-targets --locked -- -D warnings
 cargo test --all-targets --locked
 cargo test --doc --locked
+cargo fmt --manifest-path consumers/inventory-trial/Cargo.toml --all -- --check
+cargo clippy --manifest-path consumers/inventory-trial/Cargo.toml --all-targets --locked -- -D warnings
+cargo test --manifest-path consumers/inventory-trial/Cargo.toml --locked
+cargo run --manifest-path consumers/inventory-trial/Cargo.toml --locked
 npx --yes markdownlint-cli2@0.23.3 --config .markdownlint.json "**/*.md" "!target"
