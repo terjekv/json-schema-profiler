@@ -1,0 +1,1833 @@
+{
+  "measured_on": "2026-09-26",
+  "baseline_commit": "63348f59abd8f28994560946091ab93b6525b51b",
+  "upstream_version": "0.7.0",
+  "upstream_package_sha256": "04dd8374f226542344bb23631f626fc40b99526ef431148270d89b74611d6a49",
+  "rust": "1.98.0 (88d9e12ae 2026-08-18)",
+  "valgrind": "3.26.0",
+  "cpu": "Intel Xeon Silver 4216 at 2.10 GHz; 32 logical CPUs; shared host",
+  "criterion": {
+    "samples": 30,
+    "warmup_seconds": 0.3,
+    "requested_measurement_seconds": 1,
+    "statistic": "median",
+    "time_unit": "nanoseconds"
+  },
+  "method": [
+    "Same expanded harness on both revisions; baseline checkout copied the two changed bench entrypoints.",
+    "Release builds; input construction outside measurement; default library limits and options.",
+    "Instruction/allocation baselines ran first. Final timing ran baseline then patched, with profiling before policies.",
+    "Targets ran sequentially; no concurrent builds or Valgrind runs initiated during timing. Other host activity was uncontrolled.",
+    "Allocation bytes and blocks are cumulative DHAT totals, not a retained-size or peak-heap guarantee.",
+    "Only new/ Criterion estimates and the current (Left/Both[0]) release Gungraun totals were collected."
+  ],
+  "source_sha256": {
+    "Cargo.toml": "058688099104632ab514ab03b43ea2e5a5d34181c7e53191e421b68a498e99dd",
+    "Cargo.lock": "b74328c8fc4eb8bc300021b5a32493c23c280866a55ad576f3cb2571eaa1214f",
+    "src/adapter.rs": "75429fcd85176b8dedf0789d1b6500813ec7b5742d928d8857191efa84179c93",
+    "src/statistics.rs": "ad2fd0f6e457c568820bf824a8d1d4efae98e95be1fcb2af6b87778d1783feae",
+    "src/profiler.rs": "e2163a23d66b80475aa372380da3db31b7c3021a709c56671531433030f8177f",
+    "src/profile.rs": "bf8d69e5318ca7b0c39156cb578ca0347a6b673883e95d222e66d946df60c911",
+    "benches/profiling_criterion.rs": "433819dfcef559e1a032484cdac059f823ca4fc3a3421f46179015bda932cc9a",
+    "benches/profiling_gungraun.rs": "24cb663f5d5cf166637a7961e174bc2d2c7fac1f2f1f59457eb70d24e06ee48d",
+    "benches/scaling_gungraun.rs": "a9184dc217e60f2a8f9a34193badfc1e39907434b073de74dc1dc14642f366d0",
+    "benches/policies_criterion.rs": "9c422a6cb0622417dff077812990e482e10b383e2af0a4ddfa93837b166b0e40",
+    "benches/support/mod.rs": "7cec2c4858ad0b2f933eef7f1736bbe2128b3ba106b02c9179d8bd7681d003d1",
+    "benches/upstream/mod.rs": "267ad9ffb1a39aa21e4345226eda53bbb43ad571e87796d9779fbe883a767b4f",
+    "vendor/schema_analysis/src/analysis/schema_seed.rs": "5a7f1730ef147722046fe6f8c6920093423d0a76567de3044c80bd6406340038",
+    "patches/schema-analysis-object-presence.patch": "ecd51fba0bfe062d3224921e7e4cd30570952337452bbf108fff860bb7ff1c1c"
+  },
+  "algorithm": "First 64 presence flags stored inline as bytes; additional fields use packed u64 spill words.",
+  "timing": {
+    "arrays/counts/1024": {
+      "baseline": {
+        "median_ns": 7196824.699999999,
+        "confidence_lower_ns": 7190635.9,
+        "confidence_upper_ns": 7200638.699999999
+      },
+      "patched": {
+        "median_ns": 7127809.1,
+        "confidence_lower_ns": 7117711,
+        "confidence_upper_ns": 7137965.4
+      }
+    },
+    "arrays/counts/64": {
+      "baseline": {
+        "median_ns": 438010.92500000005,
+        "confidence_lower_ns": 437842.898245614,
+        "confidence_upper_ns": 438113.35047619045
+      },
+      "patched": {
+        "median_ns": 432103.7535714286,
+        "confidence_lower_ns": 431858.61125319696,
+        "confidence_upper_ns": 432250.80000000005
+      }
+    },
+    "arrays/default/1024": {
+      "baseline": {
+        "median_ns": 8427811.875,
+        "confidence_lower_ns": 8426581.25,
+        "confidence_upper_ns": 8431599.25
+      },
+      "patched": {
+        "median_ns": 8321572.125,
+        "confidence_lower_ns": 8317748.125,
+        "confidence_upper_ns": 8330236.875
+      }
+    },
+    "arrays/default/64": {
+      "baseline": {
+        "median_ns": 520106.6197901049,
+        "confidence_lower_ns": 519985.61071428575,
+        "confidence_upper_ns": 520298.0758333333
+      },
+      "patched": {
+        "median_ns": 511296.1879120879,
+        "confidence_lower_ns": 511213.2267857143,
+        "confidence_upper_ns": 511355.2583333333
+      }
+    },
+    "arrays/minimal/1024": {
+      "baseline": {
+        "median_ns": 4788636.857142857,
+        "confidence_lower_ns": 4786281.571428572,
+        "confidence_upper_ns": 4791401.071428571
+      },
+      "patched": {
+        "median_ns": 4883975.571428571,
+        "confidence_lower_ns": 4881517.142857143,
+        "confidence_upper_ns": 4888499.571428571
+      }
+    },
+    "arrays/minimal/64": {
+      "baseline": {
+        "median_ns": 289928.9571678322,
+        "confidence_lower_ns": 289848.3791445623,
+        "confidence_upper_ns": 290023.6702380952
+      },
+      "patched": {
+        "median_ns": 293938.7629076087,
+        "confidence_lower_ns": 293840.8920454546,
+        "confidence_upper_ns": 294099.5705213904
+      }
+    },
+    "arrays/profiler/1024": {
+      "baseline": {
+        "median_ns": 9481209.5,
+        "confidence_lower_ns": 9475193.5,
+        "confidence_upper_ns": 9495069.5
+      },
+      "patched": {
+        "median_ns": 9542666.125,
+        "confidence_lower_ns": 9527815,
+        "confidence_upper_ns": 9553652
+      }
+    },
+    "arrays/profiler/64": {
+      "baseline": {
+        "median_ns": 594664.4583333333,
+        "confidence_lower_ns": 594298.2048611111,
+        "confidence_upper_ns": 594823.6652097902
+      },
+      "patched": {
+        "median_ns": 603830.4208333334,
+        "confidence_lower_ns": 603440.1785714286,
+        "confidence_upper_ns": 603940.7410714286
+      }
+    },
+    "deep/counts/1024": {
+      "baseline": {
+        "median_ns": 4248235.142857143,
+        "confidence_lower_ns": 4242581.172364673,
+        "confidence_upper_ns": 4250867.887820512
+      },
+      "patched": {
+        "median_ns": 4450557.75,
+        "confidence_lower_ns": 4449007.25,
+        "confidence_upper_ns": 4453330.1875
+      }
+    },
+    "deep/counts/64": {
+      "baseline": {
+        "median_ns": 255847.31005010317,
+        "confidence_lower_ns": 255614.61280129338,
+        "confidence_upper_ns": 256005.1810966811
+      },
+      "patched": {
+        "median_ns": 264360.5843434343,
+        "confidence_lower_ns": 263564.47575594916,
+        "confidence_upper_ns": 264638.7592592592
+      }
+    },
+    "deep/default/1024": {
+      "baseline": {
+        "median_ns": 3316458.4941471573,
+        "confidence_lower_ns": 3314484.527777778,
+        "confidence_upper_ns": 3318795.9553571427
+      },
+      "patched": {
+        "median_ns": 3456649.041666667,
+        "confidence_lower_ns": 3426950.909722222,
+        "confidence_upper_ns": 3471129.2329545454
+      }
+    },
+    "deep/default/64": {
+      "baseline": {
+        "median_ns": 193775.90833333333,
+        "confidence_lower_ns": 193726.4583333333,
+        "confidence_upper_ns": 193934.92956349207
+      },
+      "patched": {
+        "median_ns": 199278.08658008656,
+        "confidence_lower_ns": 198989.98966942148,
+        "confidence_upper_ns": 199526.3216991342
+      }
+    },
+    "deep/minimal/1024": {
+      "baseline": {
+        "median_ns": 3208049.696969697,
+        "confidence_lower_ns": 3207703.3046153844,
+        "confidence_upper_ns": 3209840.0869565215
+      },
+      "patched": {
+        "median_ns": 3402851.904761905,
+        "confidence_lower_ns": 3400159.2407407407,
+        "confidence_upper_ns": 3404430.979166667
+      }
+    },
+    "deep/minimal/64": {
+      "baseline": {
+        "median_ns": 188442.6635964912,
+        "confidence_lower_ns": 188385.11742424243,
+        "confidence_upper_ns": 188522.99166666667
+      },
+      "patched": {
+        "median_ns": 197177.5227272727,
+        "confidence_lower_ns": 197042.38260188088,
+        "confidence_upper_ns": 197204.15
+      }
+    },
+    "deep/profiler/1024": {
+      "baseline": {
+        "median_ns": 5568357.5,
+        "confidence_lower_ns": 5563704.166666667,
+        "confidence_upper_ns": 5573822.5
+      },
+      "patched": {
+        "median_ns": 5737858.166666666,
+        "confidence_lower_ns": 5733754.166666667,
+        "confidence_upper_ns": 5745530
+      }
+    },
+    "deep/profiler/64": {
+      "baseline": {
+        "median_ns": 458245.3084175084,
+        "confidence_lower_ns": 457832.2766666667,
+        "confidence_upper_ns": 458522.72307692305
+      },
+      "patched": {
+        "median_ns": 465705.8851851852,
+        "confidence_lower_ns": 465549.58,
+        "confidence_upper_ns": 465799.15
+      }
+    },
+    "generation/deep/expansive": {
+      "baseline": {
+        "median_ns": 248995.02534113062,
+        "confidence_lower_ns": 248583.2313034188,
+        "confidence_upper_ns": 249335.34304871375
+      },
+      "patched": {
+        "median_ns": 268540.9211647727,
+        "confidence_lower_ns": 268486.37934027775,
+        "confidence_upper_ns": 268670.9
+      }
+    },
+    "generation/deep/strict": {
+      "baseline": {
+        "median_ns": 126408.24159663866,
+        "confidence_lower_ns": 126348.40604575163,
+        "confidence_upper_ns": 126518.7236689142
+      },
+      "patched": {
+        "median_ns": 143736.91736111112,
+        "confidence_lower_ns": 143683.19047619047,
+        "confidence_upper_ns": 143787.8448275862
+      }
+    },
+    "generation/dynamic/expansive": {
+      "baseline": {
+        "median_ns": 1468903.777972028,
+        "confidence_lower_ns": 1466980.0729166665,
+        "confidence_upper_ns": 1471867.1229166668
+      },
+      "patched": {
+        "median_ns": 1473874.7844827585,
+        "confidence_lower_ns": 1472530.1983333332,
+        "confidence_upper_ns": 1475131.8166666667
+      }
+    },
+    "generation/dynamic/strict": {
+      "baseline": {
+        "median_ns": 1471140.1040372672,
+        "confidence_lower_ns": 1470473.25,
+        "confidence_upper_ns": 1472007.4786931816
+      },
+      "patched": {
+        "median_ns": 1494153.633903134,
+        "confidence_lower_ns": 1491600.763221154,
+        "confidence_upper_ns": 1496633.0827922078
+      }
+    },
+    "generation/homogeneous/expansive": {
+      "baseline": {
+        "median_ns": 8449.973178994918,
+        "confidence_lower_ns": 8444.877955220583,
+        "confidence_upper_ns": 8454.102519762846
+      },
+      "patched": {
+        "median_ns": 8546.932193844936,
+        "confidence_lower_ns": 8536.43845189898,
+        "confidence_upper_ns": 8549.670599366309
+      }
+    },
+    "generation/homogeneous/strict": {
+      "baseline": {
+        "median_ns": 7631.046653555597,
+        "confidence_lower_ns": 7624.187589840207,
+        "confidence_upper_ns": 7634.5259407539215
+      },
+      "patched": {
+        "median_ns": 7567.59519661222,
+        "confidence_lower_ns": 7555.072904483431,
+        "confidence_upper_ns": 7573.152548036758
+      }
+    },
+    "generation/mixed/expansive": {
+      "baseline": {
+        "median_ns": 7268.352847490348,
+        "confidence_lower_ns": 7265.85141041391,
+        "confidence_upper_ns": 7270.737522711788
+      },
+      "patched": {
+        "median_ns": 7439.279691243013,
+        "confidence_lower_ns": 7436.174575712638,
+        "confidence_upper_ns": 7442.156114964984
+      }
+    },
+    "generation/mixed/strict": {
+      "baseline": {
+        "median_ns": 790.5127579987977,
+        "confidence_lower_ns": 790.2742436546914,
+        "confidence_upper_ns": 790.6167369347936
+      },
+      "patched": {
+        "median_ns": 821.6111782840496,
+        "confidence_lower_ns": 821.4230520282673,
+        "confidence_upper_ns": 821.7503924313776
+      }
+    },
+    "generation/sparse/expansive": {
+      "baseline": {
+        "median_ns": 56956.59391534391,
+        "confidence_lower_ns": 56920.782916740005,
+        "confidence_upper_ns": 56974.18131578948
+      },
+      "patched": {
+        "median_ns": 59036.28184653184,
+        "confidence_lower_ns": 59013.71418918919,
+        "confidence_upper_ns": 59061.21891891892
+      }
+    },
+    "generation/sparse/strict": {
+      "baseline": {
+        "median_ns": 56539.35649797571,
+        "confidence_lower_ns": 56528.11398026316,
+        "confidence_upper_ns": 56565.85885167464
+      },
+      "patched": {
+        "median_ns": 57278.41807432433,
+        "confidence_lower_ns": 57266.07702702703,
+        "confidence_upper_ns": 57286.85607138238
+      }
+    },
+    "generation/wide/expansive": {
+      "baseline": {
+        "median_ns": 348207.4572310406,
+        "confidence_lower_ns": 348008.0089655173,
+        "confidence_upper_ns": 348270.14814814815
+      },
+      "patched": {
+        "median_ns": 354950.7738095238,
+        "confidence_lower_ns": 354836.66117216117,
+        "confidence_upper_ns": 355140.22430213465
+      }
+    },
+    "generation/wide/strict": {
+      "baseline": {
+        "median_ns": 319595.31651549507,
+        "confidence_lower_ns": 319478.67619047617,
+        "confidence_upper_ns": 319824.6890756303
+      },
+      "patched": {
+        "median_ns": 324671.8056022409,
+        "confidence_lower_ns": 324226.3689994216,
+        "confidence_upper_ns": 324804.4285714286
+      }
+    },
+    "homogeneous/counts/1024": {
+      "baseline": {
+        "median_ns": 851438.7261111111,
+        "confidence_lower_ns": 851307.5069444445,
+        "confidence_upper_ns": 851511.0833333333
+      },
+      "patched": {
+        "median_ns": 867756.9309523809,
+        "confidence_lower_ns": 867148.0773809524,
+        "confidence_upper_ns": 868286.6118518519
+      }
+    },
+    "homogeneous/counts/64": {
+      "baseline": {
+        "median_ns": 53589.190127758426,
+        "confidence_lower_ns": 53583.48939962477,
+        "confidence_upper_ns": 53592.67738359202
+      },
+      "patched": {
+        "median_ns": 54587.20090909091,
+        "confidence_lower_ns": 54545.3018543956,
+        "confidence_upper_ns": 54621.716527777775
+      }
+    },
+    "homogeneous/default/1024": {
+      "baseline": {
+        "median_ns": 988737.9706349206,
+        "confidence_lower_ns": 988658.4236111111,
+        "confidence_upper_ns": 988809.9755244756
+      },
+      "patched": {
+        "median_ns": 1002166.6134432784,
+        "confidence_lower_ns": 1001930.9239766082,
+        "confidence_upper_ns": 1002409.0655555555
+      }
+    },
+    "homogeneous/default/64": {
+      "baseline": {
+        "median_ns": 62646.83476190476,
+        "confidence_lower_ns": 62643.077712137485,
+        "confidence_upper_ns": 62650.245105820104
+      },
+      "patched": {
+        "median_ns": 63754.461134453784,
+        "confidence_lower_ns": 63728.19117647059,
+        "confidence_upper_ns": 63778.511840120664
+      }
+    },
+    "homogeneous/minimal/1024": {
+      "baseline": {
+        "median_ns": 557931.5511363636,
+        "confidence_lower_ns": 557630.9444444445,
+        "confidence_upper_ns": 558097.45
+      },
+      "patched": {
+        "median_ns": 590892.6943181818,
+        "confidence_lower_ns": 590598.4027777778,
+        "confidence_upper_ns": 591196.903125
+      }
+    },
+    "homogeneous/minimal/64": {
+      "baseline": {
+        "median_ns": 34779.07138590203,
+        "confidence_lower_ns": 34766.57056451613,
+        "confidence_upper_ns": 34792.08639153716
+      },
+      "patched": {
+        "median_ns": 36999.653152285566,
+        "confidence_lower_ns": 36991.16951239877,
+        "confidence_upper_ns": 37012.97588005215
+      }
+    },
+    "homogeneous/profiler/1024": {
+      "baseline": {
+        "median_ns": 1131361.026785714,
+        "confidence_lower_ns": 1131121.7613636362,
+        "confidence_upper_ns": 1131890.9157608696
+      },
+      "patched": {
+        "median_ns": 1157503.861111111,
+        "confidence_lower_ns": 1156745.1138392857,
+        "confidence_upper_ns": 1158178.4795321636
+      }
+    },
+    "homogeneous/profiler/64": {
+      "baseline": {
+        "median_ns": 81812.22529100529,
+        "confidence_lower_ns": 81799.97738791423,
+        "confidence_upper_ns": 81829.68880070547
+      },
+      "patched": {
+        "median_ns": 84523.9706959707,
+        "confidence_lower_ns": 84492.47564102564,
+        "confidence_upper_ns": 84535.2970460339
+      }
+    },
+    "mixed/counts/1024": {
+      "baseline": {
+        "median_ns": 479626.376,
+        "confidence_lower_ns": 479453.58752436645,
+        "confidence_upper_ns": 479966.1495073892
+      },
+      "patched": {
+        "median_ns": 480224.4083333333,
+        "confidence_lower_ns": 477924.49431438127,
+        "confidence_upper_ns": 481425.29500000004
+      }
+    },
+    "mixed/counts/64": {
+      "baseline": {
+        "median_ns": 30472.52605633803,
+        "confidence_lower_ns": 30462.360915492958,
+        "confidence_upper_ns": 30479.384178589324
+      },
+      "patched": {
+        "median_ns": 30193.23296296296,
+        "confidence_lower_ns": 30186.273517875517,
+        "confidence_upper_ns": 30346.440516273848
+      }
+    },
+    "mixed/default/1024": {
+      "baseline": {
+        "median_ns": 600033.96875,
+        "confidence_lower_ns": 599859.8583333334,
+        "confidence_upper_ns": 600373.9377272727
+      },
+      "patched": {
+        "median_ns": 601397.25,
+        "confidence_lower_ns": 600839.0430555556,
+        "confidence_upper_ns": 601870.7004229324
+      }
+    },
+    "mixed/default/64": {
+      "baseline": {
+        "median_ns": 37709.268866610975,
+        "confidence_lower_ns": 37689.80498700455,
+        "confidence_upper_ns": 37717.85785486443
+      },
+      "patched": {
+        "median_ns": 37743.111788090915,
+        "confidence_lower_ns": 37714.63116123642,
+        "confidence_upper_ns": 37766.15322396901
+      }
+    },
+    "mixed/minimal/1024": {
+      "baseline": {
+        "median_ns": 352350.20621236996,
+        "confidence_lower_ns": 352318.96428571426,
+        "confidence_upper_ns": 352374.58730158734
+      },
+      "patched": {
+        "median_ns": 352905.18367346935,
+        "confidence_lower_ns": 352637.2504638219,
+        "confidence_upper_ns": 353373.58730158734
+      }
+    },
+    "mixed/minimal/64": {
+      "baseline": {
+        "median_ns": 22434.835848765433,
+        "confidence_lower_ns": 22430.348579545454,
+        "confidence_upper_ns": 22439.238399621212
+      },
+      "patched": {
+        "median_ns": 22414.65949337121,
+        "confidence_lower_ns": 22367.408203125,
+        "confidence_upper_ns": 22475.417415691194
+      }
+    },
+    "mixed/profiler/1024": {
+      "baseline": {
+        "median_ns": 624558.53125,
+        "confidence_lower_ns": 624230.6528799019,
+        "confidence_upper_ns": 624692.6976495727
+      },
+      "patched": {
+        "median_ns": 621196.9932291666,
+        "confidence_lower_ns": 617721.4196428572,
+        "confidence_upper_ns": 623419.7025501672
+      }
+    },
+    "mixed/profiler/64": {
+      "baseline": {
+        "median_ns": 47970.48562091503,
+        "confidence_lower_ns": 47937.445343915344,
+        "confidence_upper_ns": 47983.37351093784
+      },
+      "patched": {
+        "median_ns": 47423.201505016725,
+        "confidence_lower_ns": 47413.236304347825,
+        "confidence_upper_ns": 47438.969419596426
+      }
+    },
+    "parse_and_profile/1024": {
+      "baseline": {
+        "median_ns": 2889482.9338235296,
+        "confidence_lower_ns": 2885892.035057471,
+        "confidence_upper_ns": 2895951.7673913045
+      },
+      "patched": {
+        "median_ns": 2890616.0505050505,
+        "confidence_lower_ns": 2889740.9652014654,
+        "confidence_upper_ns": 2893058.8526785714
+      }
+    },
+    "scope/selected/1024": {
+      "baseline": {
+        "median_ns": 413289.93247694336,
+        "confidence_lower_ns": 412549.79613095237,
+        "confidence_upper_ns": 413475.9877899878
+      },
+      "patched": {
+        "median_ns": 418685.7326388889,
+        "confidence_lower_ns": 418504.5838675214,
+        "confidence_upper_ns": 418941.4674185464
+      }
+    },
+    "scope/selected/64": {
+      "baseline": {
+        "median_ns": 31186.369358178054,
+        "confidence_lower_ns": 31173.570923913045,
+        "confidence_upper_ns": 31200.32785873547
+      },
+      "patched": {
+        "median_ns": 31620.86045248869,
+        "confidence_lower_ns": 31615.48842879257,
+        "confidence_upper_ns": 31635.738970588238
+      }
+    },
+    "scope/whole/1024": {
+      "baseline": {
+        "median_ns": 17026314.75,
+        "confidence_lower_ns": 17000588.75,
+        "confidence_upper_ns": 17064401.25
+      },
+      "patched": {
+        "median_ns": 17104847.5,
+        "confidence_lower_ns": 17068528.5,
+        "confidence_upper_ns": 17122447.5
+      }
+    },
+    "scope/whole/64": {
+      "baseline": {
+        "median_ns": 1009976.369047619,
+        "confidence_lower_ns": 1007451.2086247086,
+        "confidence_upper_ns": 1010840.7726715687
+      },
+      "patched": {
+        "median_ns": 1011618.6102693602,
+        "confidence_lower_ns": 1011417.3851449275,
+        "confidence_upper_ns": 1012009.1944444445
+      }
+    },
+    "sparse/counts/1024": {
+      "baseline": {
+        "median_ns": 7092665.1,
+        "confidence_lower_ns": 7084756.4,
+        "confidence_upper_ns": 7104119.5
+      },
+      "patched": {
+        "median_ns": 4329472.1875,
+        "confidence_lower_ns": 4327833.625,
+        "confidence_upper_ns": 4331050
+      }
+    },
+    "sparse/counts/64": {
+      "baseline": {
+        "median_ns": 439890.7,
+        "confidence_lower_ns": 439831.57166666666,
+        "confidence_upper_ns": 440116.13585526316
+      },
+      "patched": {
+        "median_ns": 274893.48078208556,
+        "confidence_lower_ns": 274744.85714285716,
+        "confidence_upper_ns": 275035.9767628205
+      }
+    },
+    "sparse/default/1024": {
+      "baseline": {
+        "median_ns": 5645715.333333333,
+        "confidence_lower_ns": 5623467.416666666,
+        "confidence_upper_ns": 5667764.75
+      },
+      "patched": {
+        "median_ns": 2878444.0377777778,
+        "confidence_lower_ns": 2861381.334313725,
+        "confidence_upper_ns": 2892773.1222222224
+      }
+    },
+    "sparse/default/64": {
+      "baseline": {
+        "median_ns": 347259.3025510204,
+        "confidence_lower_ns": 346901.6111111111,
+        "confidence_upper_ns": 347392.65254658385
+      },
+      "patched": {
+        "median_ns": 182938.77689594356,
+        "confidence_lower_ns": 182886.23798076925,
+        "confidence_upper_ns": 183085.59293650795
+      }
+    },
+    "sparse/minimal/1024": {
+      "baseline": {
+        "median_ns": 5214977.428571428,
+        "confidence_lower_ns": 5212192.928571429,
+        "confidence_upper_ns": 5217453.642857144
+      },
+      "patched": {
+        "median_ns": 2639967.1875,
+        "confidence_lower_ns": 2634523.9985632184,
+        "confidence_upper_ns": 2643489.193979933
+      }
+    },
+    "sparse/minimal/64": {
+      "baseline": {
+        "median_ns": 330706.23389355745,
+        "confidence_lower_ns": 330656.8440993789,
+        "confidence_upper_ns": 330750.01516483515
+      },
+      "patched": {
+        "median_ns": 167491.24119845673,
+        "confidence_lower_ns": 167470.68910256412,
+        "confidence_upper_ns": 167529.6686813187
+      }
+    },
+    "sparse/profiler/1024": {
+      "baseline": {
+        "median_ns": 8762473,
+        "confidence_lower_ns": 8752588.25,
+        "confidence_upper_ns": 8768349.625
+      },
+      "patched": {
+        "median_ns": 6222672.666666667,
+        "confidence_lower_ns": 6213618.083333334,
+        "confidence_upper_ns": 6228570.333333334
+      }
+    },
+    "sparse/profiler/64": {
+      "baseline": {
+        "median_ns": 612181.1463461539,
+        "confidence_lower_ns": 611880.9171052631,
+        "confidence_upper_ns": 612668.3942307692
+      },
+      "patched": {
+        "median_ns": 460575.49572649575,
+        "confidence_lower_ns": 460113.8569444445,
+        "confidence_upper_ns": 460830.08666666667
+      }
+    },
+    "wide/counts/1024": {
+      "baseline": {
+        "median_ns": 84916213,
+        "confidence_lower_ns": 84873779.5,
+        "confidence_upper_ns": 84984118.5
+      },
+      "patched": {
+        "median_ns": 26082923.5,
+        "confidence_lower_ns": 26056490,
+        "confidence_upper_ns": 26120712.5
+      }
+    },
+    "wide/counts/64": {
+      "baseline": {
+        "median_ns": 5318545.785714285,
+        "confidence_lower_ns": 5311772.428571429,
+        "confidence_upper_ns": 5333700.714285715
+      },
+      "patched": {
+        "median_ns": 1703416.5686956523,
+        "confidence_lower_ns": 1699930.567261905,
+        "confidence_upper_ns": 1708372.4265873018
+      }
+    },
+    "wide/default/1024": {
+      "baseline": {
+        "median_ns": 74287066.5,
+        "confidence_lower_ns": 74266419.5,
+        "confidence_upper_ns": 74344679.5
+      },
+      "patched": {
+        "median_ns": 15848039.166666668,
+        "confidence_lower_ns": 15837195.5,
+        "confidence_upper_ns": 15860837.166666668
+      }
+    },
+    "wide/default/64": {
+      "baseline": {
+        "median_ns": 4633975.5,
+        "confidence_lower_ns": 4632558.3125,
+        "confidence_upper_ns": 4634730.1875
+      },
+      "patched": {
+        "median_ns": 1031200.5595061728,
+        "confidence_lower_ns": 1030953.8055555555,
+        "confidence_upper_ns": 1031677.8034188035
+      }
+    },
+    "wide/minimal/1024": {
+      "baseline": {
+        "median_ns": 73297657,
+        "confidence_lower_ns": 73200532.5,
+        "confidence_upper_ns": 73380487.5
+      },
+      "patched": {
+        "median_ns": 14333643,
+        "confidence_lower_ns": 14321928.166666668,
+        "confidence_upper_ns": 14344289
+      }
+    },
+    "wide/minimal/64": {
+      "baseline": {
+        "median_ns": 4584473.625,
+        "confidence_lower_ns": 4574752.5,
+        "confidence_upper_ns": 4621715.375
+      },
+      "patched": {
+        "median_ns": 902577.1275,
+        "confidence_lower_ns": 902256.9055555556,
+        "confidence_upper_ns": 903067.2749999999
+      }
+    },
+    "wide/profiler/1024": {
+      "baseline": {
+        "median_ns": 99707807,
+        "confidence_lower_ns": 99634421,
+        "confidence_upper_ns": 100236521
+      },
+      "patched": {
+        "median_ns": 40854570.5,
+        "confidence_lower_ns": 40782262,
+        "confidence_upper_ns": 40924462
+      }
+    },
+    "wide/profiler/64": {
+      "baseline": {
+        "median_ns": 6446376.833333333,
+        "confidence_lower_ns": 6443281.75,
+        "confidence_upper_ns": 6448112.833333334
+      },
+      "patched": {
+        "median_ns": 2817888.2165991906,
+        "confidence_lower_ns": 2816036.208333333,
+        "confidence_upper_ns": 2819091.904166667
+      }
+    },
+    "width_scaling/sparse/counts/1024": {
+      "baseline": {
+        "median_ns": 162855636,
+        "confidence_lower_ns": 162698034,
+        "confidence_upper_ns": 163193183.5
+      },
+      "patched": {
+        "median_ns": 11849173.333333334,
+        "confidence_lower_ns": 11831657.833333332,
+        "confidence_upper_ns": 11867265
+      }
+    },
+    "width_scaling/sparse/counts/16": {
+      "baseline": {
+        "median_ns": 168070.19125874125,
+        "confidence_lower_ns": 167499.02243589744,
+        "confidence_upper_ns": 168317.49497377622
+      },
+      "patched": {
+        "median_ns": 130215.01131221719,
+        "confidence_lower_ns": 130154.66813725489,
+        "confidence_upper_ns": 130343.10854341736
+      }
+    },
+    "width_scaling/sparse/counts/256": {
+      "baseline": {
+        "median_ns": 12296250.166666668,
+        "confidence_lower_ns": 12286635,
+        "confidence_upper_ns": 12301088.833333332
+      },
+      "patched": {
+        "median_ns": 2709366.7452380955,
+        "confidence_lower_ns": 2707121.494444445,
+        "confidence_upper_ns": 2710329.4833333334
+      }
+    },
+    "width_scaling/sparse/counts/64": {
+      "baseline": {
+        "median_ns": 1215673.0454545454,
+        "confidence_lower_ns": 1215289.4877495463,
+        "confidence_upper_ns": 1216026.2580128205
+      },
+      "patched": {
+        "median_ns": 585002.1457142858,
+        "confidence_lower_ns": 584495.9297889611,
+        "confidence_upper_ns": 586478.5869791666
+      }
+    },
+    "width_scaling/sparse/profiler/1024": {
+      "baseline": {
+        "median_ns": 170618826,
+        "confidence_lower_ns": 170476812.5,
+        "confidence_upper_ns": 170807161.5
+      },
+      "patched": {
+        "median_ns": 19889043.5,
+        "confidence_lower_ns": 19803926.75,
+        "confidence_upper_ns": 19988019.5
+      }
+    },
+    "width_scaling/sparse/profiler/16": {
+      "baseline": {
+        "median_ns": 250676.57840177132,
+        "confidence_lower_ns": 250593.72040229884,
+        "confidence_upper_ns": 250778.56096681097
+      },
+      "patched": {
+        "median_ns": 215088.64935897436,
+        "confidence_lower_ns": 214973.1942857143,
+        "confidence_upper_ns": 215182.81782608695
+      }
+    },
+    "width_scaling/sparse/profiler/256": {
+      "baseline": {
+        "median_ns": 14079509.666666666,
+        "confidence_lower_ns": 14071737.5,
+        "confidence_upper_ns": 14084919.666666668
+      },
+      "patched": {
+        "median_ns": 4562418.8125,
+        "confidence_lower_ns": 4555192.5625,
+        "confidence_upper_ns": 4584054.875
+      }
+    },
+    "width_scaling/sparse/profiler/64": {
+      "baseline": {
+        "median_ns": 1635877.4779411764,
+        "confidence_lower_ns": 1635315.4208333334,
+        "confidence_upper_ns": 1637304.0773809524
+      },
+      "patched": {
+        "median_ns": 1004419.494047619,
+        "confidence_lower_ns": 1004079.443939394,
+        "confidence_upper_ns": 1005443.9607843137
+      }
+    },
+    "width_scaling/wide/counts/1024": {
+      "baseline": {
+        "median_ns": 239760572.5,
+        "confidence_lower_ns": 239628820,
+        "confidence_upper_ns": 240187013.5
+      },
+      "patched": {
+        "median_ns": 15708324.833333334,
+        "confidence_lower_ns": 15688099.666666668,
+        "confidence_upper_ns": 15760023.666666668
+      }
+    },
+    "width_scaling/wide/counts/16": {
+      "baseline": {
+        "median_ns": 235483.72074074074,
+        "confidence_lower_ns": 235445.87114845938,
+        "confidence_upper_ns": 235563.6354166667
+      },
+      "patched": {
+        "median_ns": 177957.54884004884,
+        "confidence_lower_ns": 177908.24952380953,
+        "confidence_upper_ns": 178014.10897435897
+      }
+    },
+    "width_scaling/wide/counts/256": {
+      "baseline": {
+        "median_ns": 17694163.75,
+        "confidence_lower_ns": 17683213.25,
+        "confidence_upper_ns": 17698989.25
+      },
+      "patched": {
+        "median_ns": 3480028.1785714286,
+        "confidence_lower_ns": 3476045.583333333,
+        "confidence_upper_ns": 3482803.301282051
+      }
+    },
+    "width_scaling/wide/counts/64": {
+      "baseline": {
+        "median_ns": 1703737.4,
+        "confidence_lower_ns": 1703585.9326923075,
+        "confidence_upper_ns": 1704023.1666666665
+      },
+      "patched": {
+        "median_ns": 772827.3552188552,
+        "confidence_lower_ns": 772094.0083333333,
+        "confidence_upper_ns": 773346.9077777779
+      }
+    },
+    "width_scaling/wide/profiler/1024": {
+      "baseline": {
+        "median_ns": 253051558.5,
+        "confidence_lower_ns": 252889612,
+        "confidence_upper_ns": 253228546
+      },
+      "patched": {
+        "median_ns": 26863691.5,
+        "confidence_lower_ns": 26704787,
+        "confidence_upper_ns": 26910126.25
+      }
+    },
+    "width_scaling/wide/profiler/16": {
+      "baseline": {
+        "median_ns": 344753.95123626373,
+        "confidence_lower_ns": 331659.7074829932,
+        "confidence_upper_ns": 369269.96598639456
+      },
+      "patched": {
+        "median_ns": 273966.7063492064,
+        "confidence_lower_ns": 273873.5866477273,
+        "confidence_upper_ns": 274057.67827380955
+      }
+    },
+    "width_scaling/wide/profiler/256": {
+      "baseline": {
+        "median_ns": 20167680,
+        "confidence_lower_ns": 20148520.25,
+        "confidence_upper_ns": 20171365.25
+      },
+      "patched": {
+        "median_ns": 5948415.333333334,
+        "confidence_lower_ns": 5923117.416666667,
+        "confidence_upper_ns": 5962903.75
+      }
+    },
+    "width_scaling/wide/profiler/64": {
+      "baseline": {
+        "median_ns": 2199786.9822222223,
+        "confidence_lower_ns": 2198799.4772727275,
+        "confidence_upper_ns": 2200430.161111111
+      },
+      "patched": {
+        "median_ns": 1270806.3115942029,
+        "confidence_lower_ns": 1269831,
+        "confidence_upper_ns": 1271360.2226190476
+      }
+    }
+  },
+  "instructions_and_allocations": {
+    "profiling_gungraun/compare/arrays_counts": {
+      "baseline": {
+        "instructions": 13846293,
+        "allocated_bytes": 517050,
+        "allocation_blocks": 29330
+      },
+      "patched": {
+        "instructions": 13681583,
+        "allocated_bytes": 517050,
+        "allocation_blocks": 29330
+      }
+    },
+    "profiling_gungraun/compare/arrays_profiler": {
+      "baseline": {
+        "instructions": 18375782,
+        "allocated_bytes": 529597,
+        "allocation_blocks": 29385
+      },
+      "patched": {
+        "instructions": 18148711,
+        "allocated_bytes": 529597,
+        "allocation_blocks": 29385
+      }
+    },
+    "profiling_gungraun/compare/homogeneous_counts": {
+      "baseline": {
+        "instructions": 860205,
+        "allocated_bytes": 35486,
+        "allocation_blocks": 1813
+      },
+      "patched": {
+        "instructions": 843634,
+        "allocated_bytes": 35486,
+        "allocation_blocks": 1813
+      }
+    },
+    "profiling_gungraun/compare/homogeneous_default": {
+      "baseline": {
+        "instructions": 6285796,
+        "allocated_bytes": 2902300,
+        "allocation_blocks": 8524
+      },
+      "patched": {
+        "instructions": 6280730,
+        "allocated_bytes": 2902300,
+        "allocation_blocks": 8524
+      }
+    },
+    "profiling_gungraun/compare/homogeneous_minimal": {
+      "baseline": {
+        "instructions": 574038,
+        "allocated_bytes": 30334,
+        "allocation_blocks": 1043
+      },
+      "patched": {
+        "instructions": 572155,
+        "allocated_bytes": 30334,
+        "allocation_blocks": 1043
+      }
+    },
+    "profiling_gungraun/compare/homogeneous_profiler": {
+      "baseline": {
+        "instructions": 1209243,
+        "allocated_bytes": 47763,
+        "allocation_blocks": 1863
+      },
+      "patched": {
+        "instructions": 1192240,
+        "allocated_bytes": 47763,
+        "allocation_blocks": 1863
+      }
+    },
+    "profiling_gungraun/compare/sparse_counts": {
+      "baseline": {
+        "instructions": 6565735,
+        "allocated_bytes": 257898,
+        "allocation_blocks": 6042
+      },
+      "patched": {
+        "instructions": 3746441,
+        "allocated_bytes": 257898,
+        "allocation_blocks": 6042
+      }
+    },
+    "profiling_gungraun/compare/sparse_default": {
+      "baseline": {
+        "instructions": 5162919,
+        "allocated_bytes": 238652,
+        "allocation_blocks": 3339
+      },
+      "patched": {
+        "instructions": 2363745,
+        "allocated_bytes": 238652,
+        "allocation_blocks": 3339
+      }
+    },
+    "profiling_gungraun/compare/sparse_minimal": {
+      "baseline": {
+        "instructions": 4992010,
+        "allocated_bytes": 225532,
+        "allocation_blocks": 3307
+      },
+      "patched": {
+        "instructions": 2186751,
+        "allocated_bytes": 225532,
+        "allocation_blocks": 3307
+      }
+    },
+    "profiling_gungraun/compare/sparse_profiler": {
+      "baseline": {
+        "instructions": 8746876,
+        "allocated_bytes": 370746,
+        "allocation_blocks": 6229
+      },
+      "patched": {
+        "instructions": 5886986,
+        "allocated_bytes": 370746,
+        "allocation_blocks": 6229
+      }
+    },
+    "profiling_gungraun/compare/wide_counts": {
+      "baseline": {
+        "instructions": 9681129,
+        "allocated_bytes": 285676,
+        "allocation_blocks": 8784
+      },
+      "patched": {
+        "instructions": 5464792,
+        "allocated_bytes": 285676,
+        "allocation_blocks": 8784
+      }
+    },
+    "profiling_gungraun/compare/wide_profiler": {
+      "baseline": {
+        "instructions": 12608716,
+        "allocated_bytes": 398892,
+        "allocation_blocks": 8972
+      },
+      "patched": {
+        "instructions": 8332003,
+        "allocated_bytes": 398892,
+        "allocation_blocks": 8972
+      }
+    },
+    "scaling_gungraun/scaling/depth_32": {
+      "baseline": {
+        "instructions": 4095528,
+        "allocated_bytes": 453820,
+        "allocation_blocks": 7601
+      },
+      "patched": {
+        "instructions": 4125511,
+        "allocated_bytes": 453820,
+        "allocation_blocks": 7601
+      }
+    },
+    "scaling_gungraun/scaling/depth_8": {
+      "baseline": {
+        "instructions": 870215,
+        "allocated_bytes": 92248,
+        "allocation_blocks": 1712
+      },
+      "patched": {
+        "instructions": 879938,
+        "allocated_bytes": 92248,
+        "allocation_blocks": 1712
+      }
+    },
+    "scaling_gungraun/scaling/documents_1024": {
+      "baseline": {
+        "instructions": 8998307,
+        "allocated_bytes": 275323,
+        "allocation_blocks": 14406
+      },
+      "patched": {
+        "instructions": 8870071,
+        "allocated_bytes": 275323,
+        "allocation_blocks": 14406
+      }
+    },
+    "scaling_gungraun/scaling/documents_64": {
+      "baseline": {
+        "instructions": 653958,
+        "allocated_bytes": 31483,
+        "allocation_blocks": 966
+      },
+      "patched": {
+        "instructions": 644139,
+        "allocated_bytes": 31483,
+        "allocation_blocks": 966
+      }
+    },
+    "scaling_gungraun/scaling/dynamic_1024": {
+      "baseline": {
+        "instructions": 42787743,
+        "allocated_bytes": 4237910,
+        "allocation_blocks": 9709
+      },
+      "patched": {
+        "instructions": 29639647,
+        "allocated_bytes": 4300958,
+        "allocation_blocks": 10683
+      }
+    },
+    "scaling_gungraun/scaling/dynamic_128": {
+      "baseline": {
+        "instructions": 2754263,
+        "allocated_bytes": 524838,
+        "allocation_blocks": 1246
+      },
+      "patched": {
+        "instructions": 2527632,
+        "allocated_bytes": 525374,
+        "allocation_blocks": 1310
+      }
+    },
+    "scaling_gungraun/scaling/scope_selected": {
+      "baseline": {
+        "instructions": 259088,
+        "allocated_bytes": 21929,
+        "allocation_blocks": 418
+      },
+      "patched": {
+        "instructions": 260181,
+        "allocated_bytes": 21929,
+        "allocation_blocks": 418
+      }
+    },
+    "scaling_gungraun/scaling/scope_whole": {
+      "baseline": {
+        "instructions": 7759820,
+        "allocated_bytes": 265082,
+        "allocation_blocks": 10838
+      },
+      "patched": {
+        "instructions": 7728438,
+        "allocated_bytes": 265082,
+        "allocation_blocks": 10838
+      }
+    },
+    "scaling_gungraun/scaling/sparse_256": {
+      "baseline": {
+        "instructions": 120216105,
+        "allocated_bytes": 2019904,
+        "allocation_blocks": 24126
+      },
+      "patched": {
+        "instructions": 29612839,
+        "allocated_bytes": 2021440,
+        "allocation_blocks": 24190
+      }
+    },
+    "scaling_gungraun/scaling/width_1024": {
+      "baseline": {
+        "instructions": 2361229579,
+        "allocated_bytes": 8579660,
+        "allocation_blocks": 139308
+      },
+      "patched": {
+        "instructions": 186957908,
+        "allocated_bytes": 8587220,
+        "allocation_blocks": 139371
+      }
+    },
+    "scaling_gungraun/scaling/width_16": {
+      "baseline": {
+        "instructions": 2640279,
+        "allocated_bytes": 122388,
+        "allocation_blocks": 2383
+      },
+      "patched": {
+        "instructions": 2117600,
+        "allocated_bytes": 122388,
+        "allocation_blocks": 2383
+      }
+    },
+    "scaling_gungraun/scaling/width_256": {
+      "baseline": {
+        "instructions": 178469552,
+        "allocated_bytes": 2139956,
+        "allocation_blocks": 35162
+      },
+      "patched": {
+        "instructions": 40701088,
+        "allocated_bytes": 2141468,
+        "allocation_blocks": 35225
+      }
+    },
+    "scaling_gungraun/scaling/width_64": {
+      "baseline": {
+        "instructions": 17950472,
+        "allocated_bytes": 527980,
+        "allocation_blocks": 9021
+      },
+      "patched": {
+        "instructions": 9335117,
+        "allocated_bytes": 527980,
+        "allocation_blocks": 9021
+      }
+    },
+    "scaling_gungraun/upstream_counts/sparse_256": {
+      "baseline": {
+        "instructions": 107783415,
+        "allocated_bytes": 1151912,
+        "allocation_blocks": 22764
+      },
+      "patched": {
+        "instructions": 17171360,
+        "allocated_bytes": 1153448,
+        "allocation_blocks": 22828
+      }
+    },
+    "scaling_gungraun/upstream_counts/width_1024": {
+      "baseline": {
+        "instructions": 2286507524,
+        "allocated_bytes": 5088732,
+        "allocation_blocks": 133888
+      },
+      "patched": {
+        "instructions": 114141882,
+        "allocated_bytes": 5096292,
+        "allocation_blocks": 133951
+      }
+    },
+    "scaling_gungraun/upstream_counts/width_16": {
+      "baseline": {
+        "instructions": 1867137,
+        "allocated_bytes": 73212,
+        "allocation_blocks": 2284
+      },
+      "patched": {
+        "instructions": 1338454,
+        "allocated_bytes": 73212,
+        "allocation_blocks": 2284
+      }
+    },
+    "scaling_gungraun/upstream_counts/width_256": {
+      "baseline": {
+        "instructions": 161284465,
+        "allocated_bytes": 1266988,
+        "allocation_blocks": 33787
+      },
+      "patched": {
+        "instructions": 24679665,
+        "allocated_bytes": 1268500,
+        "allocation_blocks": 33850
+      }
+    },
+    "scaling_gungraun/upstream_counts/width_64": {
+      "baseline": {
+        "instructions": 14428066,
+        "allocated_bytes": 311596,
+        "allocation_blocks": 8663
+      },
+      "patched": {
+        "instructions": 6143221,
+        "allocated_bytes": 311596,
+        "allocation_blocks": 8663
+      }
+    }
+  },
+  "rejected_presence_array_prototype": {
+    "source_sha256": "6f23315ffbc92bcf8e9280909961fcdcfbb7ecf5cb1196390b358df3ec8db9c3",
+    "cases": {
+      "profiling_gungraun/compare/arrays_counts": {
+        "instructions": 14626124,
+        "allocated_bytes": 529589,
+        "allocation_blocks": 33552
+      },
+      "profiling_gungraun/compare/arrays_profiler": {
+        "instructions": 19413724,
+        "allocated_bytes": 542136,
+        "allocation_blocks": 33607
+      },
+      "profiling_gungraun/compare/homogeneous_counts": {
+        "instructions": 901473,
+        "allocated_bytes": 36248,
+        "allocation_blocks": 2067
+      },
+      "profiling_gungraun/compare/homogeneous_default": {
+        "instructions": 6338162,
+        "allocated_bytes": 2903062,
+        "allocation_blocks": 8778
+      },
+      "profiling_gungraun/compare/homogeneous_minimal": {
+        "instructions": 627850,
+        "allocated_bytes": 31096,
+        "allocation_blocks": 1297
+      },
+      "profiling_gungraun/compare/homogeneous_profiler": {
+        "instructions": 1268255,
+        "allocated_bytes": 48525,
+        "allocation_blocks": 2117
+      },
+      "profiling_gungraun/compare/sparse_counts": {
+        "instructions": 3732075,
+        "allocated_bytes": 261993,
+        "allocation_blocks": 6170
+      },
+      "profiling_gungraun/compare/sparse_default": {
+        "instructions": 2341426,
+        "allocated_bytes": 242747,
+        "allocation_blocks": 3467
+      },
+      "profiling_gungraun/compare/sparse_minimal": {
+        "instructions": 2177273,
+        "allocated_bytes": 229627,
+        "allocation_blocks": 3435
+      },
+      "profiling_gungraun/compare/sparse_profiler": {
+        "instructions": 5921020,
+        "allocated_bytes": 374841,
+        "allocation_blocks": 6357
+      },
+      "profiling_gungraun/compare/wide_counts": {
+        "instructions": 5426607,
+        "allocated_bytes": 289740,
+        "allocation_blocks": 8911
+      },
+      "profiling_gungraun/compare/wide_profiler": {
+        "instructions": 8368670,
+        "allocated_bytes": 402956,
+        "allocation_blocks": 9099
+      }
+    }
+  },
+  "small_object_followup": {
+    "method": "Baseline then patched; 40 samples, 1 second warmup, requested 3 seconds; homogeneous filter only. Original measurements above are retained.",
+    "timing": {
+      "homogeneous/counts/1024": {
+        "baseline": {
+          "median_ns": 846969.1857142857,
+          "confidence_lower_ns": 846765.3501424501,
+          "confidence_upper_ns": 847147.6411842105
+        },
+        "patched": {
+          "median_ns": 871825.8,
+          "confidence_lower_ns": 871355.9645833333,
+          "confidence_upper_ns": 872254.5476190476
+        }
+      },
+      "homogeneous/counts/64": {
+        "baseline": {
+          "median_ns": 53586.50035063113,
+          "confidence_lower_ns": 53580.86224256293,
+          "confidence_upper_ns": 53597.04337374582
+        },
+        "patched": {
+          "median_ns": 55472.8467630854,
+          "confidence_lower_ns": 55466.14826839827,
+          "confidence_upper_ns": 55479.16903409091
+        }
+      },
+      "homogeneous/default/1024": {
+        "baseline": {
+          "median_ns": 998055.9017857143,
+          "confidence_lower_ns": 997361,
+          "confidence_upper_ns": 998618.5075757576
+        },
+        "patched": {
+          "median_ns": 1011347.8898689516,
+          "confidence_lower_ns": 1009078.4125,
+          "confidence_upper_ns": 1016542.0766891892
+        }
+      },
+      "homogeneous/default/64": {
+        "baseline": {
+          "median_ns": 62740.5181920904,
+          "confidence_lower_ns": 62698.98126672614,
+          "confidence_upper_ns": 62759.37220724191
+        },
+        "patched": {
+          "median_ns": 63924.9113493467,
+          "confidence_lower_ns": 63879.01698275862,
+          "confidence_upper_ns": 64155.2118226601
+        }
+      },
+      "homogeneous/minimal/1024": {
+        "baseline": {
+          "median_ns": 554442.3470695971,
+          "confidence_lower_ns": 554251.3432282003,
+          "confidence_upper_ns": 554823.947172619
+        },
+        "patched": {
+          "median_ns": 604234.0519000704,
+          "confidence_lower_ns": 603338.4162191192,
+          "confidence_upper_ns": 604833.8289170507
+        }
+      },
+      "homogeneous/minimal/64": {
+        "baseline": {
+          "median_ns": 34926.58062585034,
+          "confidence_lower_ns": 34922.8159139785,
+          "confidence_upper_ns": 34930.13913043478
+        },
+        "patched": {
+          "median_ns": 37088.97119470568,
+          "confidence_lower_ns": 37081.65538872892,
+          "confidence_upper_ns": 37097.32271432271
+        }
+      },
+      "homogeneous/profiler/1024": {
+        "baseline": {
+          "median_ns": 1119250.8602316603,
+          "confidence_lower_ns": 1118324.2147058824,
+          "confidence_upper_ns": 1123083.0659722222
+        },
+        "patched": {
+          "median_ns": 1156473.7671428572,
+          "confidence_lower_ns": 1155784.5892857143,
+          "confidence_upper_ns": 1157266.9326923077
+        }
+      },
+      "homogeneous/profiler/64": {
+        "baseline": {
+          "median_ns": 81072.01503759398,
+          "confidence_lower_ns": 81018.1066162571,
+          "confidence_upper_ns": 81379.35263377926
+        },
+        "patched": {
+          "median_ns": 83962.14649621211,
+          "confidence_lower_ns": 83809.15946553447,
+          "confidence_upper_ns": 84158.00756669565
+        }
+      }
+    }
+  },
+  "deep_generation_followup": {
+    "method": "Baseline then patched; 40 samples, 1 second warmup, requested 3 seconds; generation/deep filter only. Profile construction is outside the timed loop; original measurements above are retained.",
+    "timing": {
+      "generation/deep/expansive": {
+        "baseline": {
+          "median_ns": 250239.47645833332,
+          "confidence_lower_ns": 250140.01156156155,
+          "confidence_upper_ns": 250282.18996825395
+        },
+        "patched": {
+          "median_ns": 272305.6621212121,
+          "confidence_lower_ns": 270388.4955357143,
+          "confidence_upper_ns": 272507.52189952903
+        }
+      },
+      "generation/deep/strict": {
+        "baseline": {
+          "median_ns": 116070.07650462963,
+          "confidence_lower_ns": 115971.09943804824,
+          "confidence_upper_ns": 116166.39267676767
+        },
+        "patched": {
+          "median_ns": 132739.20408163266,
+          "confidence_lower_ns": 132684.45238095237,
+          "confidence_upper_ns": 132785.4063886424
+        }
+      }
+    }
+  },
+  "intermediate_inline_bitset": {
+    "source_sha256": "f3ad0333832f48075fa06beeaae2ad366d83a3b100e0b0ec2fb03f3b45bc5bd5",
+    "initial_small_object_timing": {
+      "homogeneous/counts/1024": {
+        "baseline": {
+          "median_ns": 851438.7261111111,
+          "confidence_lower_ns": 851307.5069444445,
+          "confidence_upper_ns": 851511.0833333333
+        },
+        "patched": {
+          "median_ns": 868742.5753968253,
+          "confidence_lower_ns": 868495.5392156863,
+          "confidence_upper_ns": 869708.1641975308
+        }
+      },
+      "homogeneous/counts/64": {
+        "baseline": {
+          "median_ns": 53589.190127758426,
+          "confidence_lower_ns": 53583.48939962477,
+          "confidence_upper_ns": 53592.67738359202
+        },
+        "patched": {
+          "median_ns": 55063.430714285714,
+          "confidence_lower_ns": 55005.35208333333,
+          "confidence_upper_ns": 55086.40119047619
+        }
+      },
+      "homogeneous/default/1024": {
+        "baseline": {
+          "median_ns": 988737.9706349206,
+          "confidence_lower_ns": 988658.4236111111,
+          "confidence_upper_ns": 988809.9755244756
+        },
+        "patched": {
+          "median_ns": 1028759.1092436975,
+          "confidence_lower_ns": 1027324.1304347826,
+          "confidence_upper_ns": 1029486.8926767677
+        }
+      },
+      "homogeneous/default/64": {
+        "baseline": {
+          "median_ns": 62646.83476190476,
+          "confidence_lower_ns": 62643.077712137485,
+          "confidence_upper_ns": 62650.245105820104
+        },
+        "patched": {
+          "median_ns": 65464.31571969697,
+          "confidence_lower_ns": 65281.85670368279,
+          "confidence_upper_ns": 65503.55411255411
+        }
+      },
+      "homogeneous/minimal/1024": {
+        "baseline": {
+          "median_ns": 557931.5511363636,
+          "confidence_lower_ns": 557630.9444444445,
+          "confidence_upper_ns": 558097.45
+        },
+        "patched": {
+          "median_ns": 597465.3705357143,
+          "confidence_lower_ns": 597089.3023897059,
+          "confidence_upper_ns": 597858.8670634921
+        }
+      },
+      "homogeneous/minimal/64": {
+        "baseline": {
+          "median_ns": 34779.07138590203,
+          "confidence_lower_ns": 34766.57056451613,
+          "confidence_upper_ns": 34792.08639153716
+        },
+        "patched": {
+          "median_ns": 36847.370762711864,
+          "confidence_lower_ns": 36839.99010311722,
+          "confidence_upper_ns": 36866.638126035425
+        }
+      },
+      "homogeneous/profiler/1024": {
+        "baseline": {
+          "median_ns": 1131361.026785714,
+          "confidence_lower_ns": 1131121.7613636362,
+          "confidence_upper_ns": 1131890.9157608696
+        },
+        "patched": {
+          "median_ns": 1186079.5694444445,
+          "confidence_lower_ns": 1185573.875,
+          "confidence_upper_ns": 1186843.7065217393
+        }
+      },
+      "homogeneous/profiler/64": {
+        "baseline": {
+          "median_ns": 81812.22529100529,
+          "confidence_lower_ns": 81799.97738791423,
+          "confidence_upper_ns": 81829.68880070547
+        },
+        "patched": {
+          "median_ns": 84979.6624010181,
+          "confidence_lower_ns": 84934.54487179487,
+          "confidence_upper_ns": 85028.5395021645
+        }
+      }
+    },
+    "longer_small_object_timing": {
+      "homogeneous/counts/1024": {
+        "baseline": {
+          "median_ns": 846969.1857142857,
+          "confidence_lower_ns": 846765.3501424501,
+          "confidence_upper_ns": 847147.6411842105
+        },
+        "patched": {
+          "median_ns": 872746.9830687831,
+          "confidence_lower_ns": 872441.0410016978,
+          "confidence_upper_ns": 873494.8993589743
+        }
+      },
+      "homogeneous/counts/64": {
+        "baseline": {
+          "median_ns": 53586.50035063113,
+          "confidence_lower_ns": 53580.86224256293,
+          "confidence_upper_ns": 53597.04337374582
+        },
+        "patched": {
+          "median_ns": 55132.63976603469,
+          "confidence_lower_ns": 55123.2206053068,
+          "confidence_upper_ns": 55156.028702640644
+        }
+      },
+      "homogeneous/default/1024": {
+        "baseline": {
+          "median_ns": 998055.9017857143,
+          "confidence_lower_ns": 997361,
+          "confidence_upper_ns": 998618.5075757576
+        },
+        "patched": {
+          "median_ns": 1027096.3589190982,
+          "confidence_lower_ns": 1026925.4641826923,
+          "confidence_upper_ns": 1027316.9625
+        }
+      },
+      "homogeneous/default/64": {
+        "baseline": {
+          "median_ns": 62740.5181920904,
+          "confidence_lower_ns": 62698.98126672614,
+          "confidence_upper_ns": 62759.37220724191
+        },
+        "patched": {
+          "median_ns": 65276.615497076025,
+          "confidence_lower_ns": 65269.08640350877,
+          "confidence_upper_ns": 65284.35123627783
+        }
+      },
+      "homogeneous/minimal/1024": {
+        "baseline": {
+          "median_ns": 554442.3470695971,
+          "confidence_lower_ns": 554251.3432282003,
+          "confidence_upper_ns": 554823.947172619
+        },
+        "patched": {
+          "median_ns": 600401.1005952382,
+          "confidence_lower_ns": 599868.0038961039,
+          "confidence_upper_ns": 600902.7589285714
+        }
+      },
+      "homogeneous/minimal/64": {
+        "baseline": {
+          "median_ns": 34926.58062585034,
+          "confidence_lower_ns": 34922.8159139785,
+          "confidence_upper_ns": 34930.13913043478
+        },
+        "patched": {
+          "median_ns": 37218.16015357192,
+          "confidence_lower_ns": 37193.958989898994,
+          "confidence_upper_ns": 37251.843434343435
+        }
+      },
+      "homogeneous/profiler/1024": {
+        "baseline": {
+          "median_ns": 1119250.8602316603,
+          "confidence_lower_ns": 1118324.2147058824,
+          "confidence_upper_ns": 1123083.0659722222
+        },
+        "patched": {
+          "median_ns": 1211271.0891943732,
+          "confidence_lower_ns": 1208313.4438063065,
+          "confidence_upper_ns": 1212815.6643518517
+        }
+      },
+      "homogeneous/profiler/64": {
+        "baseline": {
+          "median_ns": 81072.01503759398,
+          "confidence_lower_ns": 81018.1066162571,
+          "confidence_upper_ns": 81379.35263377926
+        },
+        "patched": {
+          "median_ns": 86770.28682170543,
+          "confidence_lower_ns": 86698.11646702085,
+          "confidence_upper_ns": 86901.1430232558
+        }
+      }
+    },
+    "instructions_and_allocations": {
+      "profiling_gungraun/compare/arrays_counts": {
+        "instructions": 13706609,
+        "allocated_bytes": 517050,
+        "allocation_blocks": 29330
+      },
+      "profiling_gungraun/compare/arrays_profiler": {
+        "instructions": 18177884,
+        "allocated_bytes": 529597,
+        "allocation_blocks": 29385
+      },
+      "profiling_gungraun/compare/homogeneous_counts": {
+        "instructions": 845158,
+        "allocated_bytes": 35486,
+        "allocation_blocks": 1813
+      },
+      "profiling_gungraun/compare/homogeneous_default": {
+        "instructions": 6284291,
+        "allocated_bytes": 2902300,
+        "allocation_blocks": 8524
+      },
+      "profiling_gungraun/compare/homogeneous_minimal": {
+        "instructions": 573679,
+        "allocated_bytes": 30334,
+        "allocation_blocks": 1043
+      },
+      "profiling_gungraun/compare/homogeneous_profiler": {
+        "instructions": 1194018,
+        "allocated_bytes": 47763,
+        "allocation_blocks": 1863
+      },
+      "profiling_gungraun/compare/sparse_counts": {
+        "instructions": 3752761,
+        "allocated_bytes": 257898,
+        "allocation_blocks": 6042
+      },
+      "profiling_gungraun/compare/sparse_default": {
+        "instructions": 2370009,
+        "allocated_bytes": 238652,
+        "allocation_blocks": 3339
+      },
+      "profiling_gungraun/compare/sparse_minimal": {
+        "instructions": 2193323,
+        "allocated_bytes": 225532,
+        "allocation_blocks": 3307
+      },
+      "profiling_gungraun/compare/sparse_profiler": {
+        "instructions": 5893400,
+        "allocated_bytes": 370746,
+        "allocation_blocks": 6229
+      },
+      "profiling_gungraun/compare/wide_counts": {
+        "instructions": 5476600,
+        "allocated_bytes": 285676,
+        "allocation_blocks": 8784
+      },
+      "profiling_gungraun/compare/wide_profiler": {
+        "instructions": 8343766,
+        "allocated_bytes": 398892,
+        "allocation_blocks": 8972
+      }
+    }
+  }
+}

@@ -18,6 +18,13 @@ contracts are established. Updates require numeric, reference, evidence and
 generated-schema regressions plus benchmark review. Upstream implementation types
 are private; `serde_json::Value` is the intentional integration boundary.
 
+The current `schema_analysis` dependency is a local copy with a focused
+[object-presence patch](wide-objects.md). Before registry publication, adopt a
+released upstream fix or settle an explicitly maintained packaging alternative:
+Cargo removes path dependencies from published manifests, which would otherwise
+restore unpatched 0.7.0. A registry copy of 0.7.0 remains a development-only oracle
+for differential tests. Both local packages keep `publish = false`.
+
 The [license inventory](dependency-licenses.md) records locked dependency metadata,
 including development tooling. Retain required notices when distributing those
 dependencies. This library uses MIT.

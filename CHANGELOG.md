@@ -7,6 +7,8 @@
 - Fallible replay evaluation and verification through `try_evaluate` and
   `try_verify`, preserving caller errors separately from bounded reports and
   preventing source failures from producing verified corpus evidence.
+- Wide/sparse object scaling benchmarks and differential aggregation regressions
+  against the published `schema_analysis` 0.7.0 release.
 - Experimental incremental corpus profiling backed by `schema_analysis` 0.7.0,
   with exact missing/null/type occurrence counts and arbitrary-precision number
   classification.
@@ -37,6 +39,11 @@
   Update exhaustive matches and serialized-report consumers to handle the
   `input_error` reason. Existing `evaluate`/`verify` signatures and infallible
   report output are unchanged; use the fallible methods for sources that can fail.
+- Replace repeated linear object-key scans in a local `schema_analysis` 0.7.0
+  copy with field-indexed presence flags. Small objects require no new allocations;
+  wider objects use temporary storage proportional to their fields. Public APIs and report
+  semantics are unchanged. Adopt a released upstream fix or an explicit packaging
+  alternative before publishing; the local dependency remains unpublished.
 - **Breaking:** `Profile::suggest` now returns `Result<Suggestion, InferenceError>`;
   callers must handle output-budget errors before examining a suggestion. Use
   `suggest_with` for per-path policies and custom output limits.
