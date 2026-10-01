@@ -117,6 +117,23 @@ format policy; it does not prove identity with an earlier profiling input or
 predict future data. Evaluation can be complete while diagnostics are truncated;
 an input/document resource limit instead marks evaluation incomplete.
 
+When the replay source can fail, use `try_evaluate` or `try_verify` with an
+iterator of `Result<Document<'_>, E>`. Do not filter read/parse errors out of the
+iterator or convert them into end-of-input: that would hide incomplete coverage.
+The first source error stops evaluation and produces
+`EvaluationStop::InputError { document_index }`, leaving the failed record
+uncounted. `ReplayError<E>` returns the incomplete report and the original error
+separately. The error payload is excluded from serialized reports and wrapper
+`Debug`/`Display` output, but remains accessible to the caller.
+
+`try_evaluate` returning `Ok` means no source error was encountered; check the
+report for invalid documents or incomplete evaluation. `try_verify` distinguishes
+`VerificationError::Input` from `VerificationError::Evaluation` and returns
+`VerifiedCorpus` only for complete, nonempty, passing coverage. At the document
+limit, one lookahead checks for exhaustion: a source error there is an input
+failure; an available document instead marks the document limit as exceeded.
+Neither outcome polls further input.
+
 ## Per-path policies
 
 ```rust

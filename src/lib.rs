@@ -47,6 +47,7 @@ pub use profiler::{Profiler, ProfilerOptions};
 pub use scope::Scope;
 pub use validation::{
     CompiledSchema, Document, Evaluation, EvaluationOptions, EvaluationStatus, EvaluationStop,
-    FormatPolicy, SchemaError, SchemaOptions, VerifiedCorpus, Violation,
+    FormatPolicy, ReplayError, SchemaError, SchemaOptions, VerificationError, VerifiedCorpus,
+    Violation,
 };
 pub use value_limits::{ValueLimit, ValueLimits};

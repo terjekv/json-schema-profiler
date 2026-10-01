@@ -77,8 +77,60 @@ document limit consumes at most one lookahead record to distinguish exact
 completion from a longer stream. An input-limit failure leaves that document
 uncounted. An empty replay can be complete but cannot yield `VerifiedCorpus`.
 
+### Fallible replay sources
+
+`try_evaluate` and `try_verify` accept
+`IntoIterator<Item = Result<Document<'a>, E>>`. Input remains borrowed; the caller
+owns parsed values and controls how records are obtained. The existing `evaluate`
+and `verify` methods continue to accept infallible document iterators.
+
+On the first `Err`, evaluation stops with
+`Incomplete(InputError { document_index })`. The zero-based index identifies the
+failed input position. That record contributes to neither `processed`, `valid`
+nor `invalid`; preceding counts and bounded diagnostics are preserved. The
+iterator is not polled again. Filtering errors out or converting them into
+iterator exhaustion prevents the library from detecting an incomplete source.
+
+`try_evaluate` returns `Err(ReplayError<E>)` for a source error. Its `evaluation()`
+accessor exposes the incomplete report; `input_error()` borrows the original
+error, and `into_parts()` returns both by value without cloning. The error type
+needs no trait bounds. An `Ok(Evaluation)` can still contain rejected documents
+or a resource/validator stop, just as with `evaluate`.
+
+`try_verify` returns either `VerifiedCorpus`, `VerificationError::Input` wrapping
+a `ReplayError`, or `VerificationError::Evaluation` carrying the failed coverage
+report. Empty, invalid, limited and source-failed replays cannot produce verified
+evidence. Both error variants provide `evaluation()`.
+
+The single document-limit lookahead has explicit precedence, including when the
+limit is zero:
+
+| Lookahead result | Outcome |
+| --- | --- |
+| Iterator exhausted | Complete evaluation; verification still requires nonempty, passing input |
+| `Ok(document)` | Incomplete evaluation with `DocumentLimit`; document uncounted |
+| `Err(error)` | Incomplete evaluation with `InputError`; original error returned |
+
+Errors beyond that lookahead, or beyond an earlier value/validator stop, are not
+consumed or reported. Diagnostic truncation does not stop iteration and cannot
+hide a later source failure. Input failures themselves do not add violations or
+mark diagnostics as truncated.
+
+Reports serialize an input failure as
+`{"status":"incomplete","detail":{"reason":"input_error","document_index":1}}`
+in the evaluation's `status` field. Update exhaustive `EvaluationStop` matches
+and report readers to handle this new reason. Existing infallible replay reports
+are unchanged.
+
+### Retained data
+
 Violations retain pointers, keywords and optional IDs, without raw scalar values
-or upstream formatted messages. Pointers can contain sensitive names. Read the
+or upstream formatted messages. Source-failure reports retain only the input
+index, with no error payload. `ReplayError` separately owns the caller's original
+error, which may contain sensitive data; neither error wrapper is serializable,
+and their `Debug`/`Display` output excludes that payload. Explicitly following
+`std::error::Error::source` exposes it when `E` implements `Error + 'static`.
+Pointers and IDs can contain sensitive names. Read the
 [resource audit](resources.md) for retained-output and temporary-memory boundaries
 and the [upstream API documentation](https://docs.rs/jsonschema/0.49.9/jsonschema/)
 for the underlying validator.

@@ -1,4 +1,4 @@
-use std::{error::Error, fmt};
+use std::{convert::Infallible, error::Error, fmt};
 
 use jsonschema::{PatternOptions, Retrieve, Uri, Validator, error::ValidationErrorKind};
 use serde::Serialize;
@@ -110,17 +110,71 @@ impl CompiledSchema {
 
     /// Counts input records, including repeated IDs, and never retains instance values.
     /// Diagnostic truncation is independent of corpus completion.
+    /// Use [`Self::try_evaluate`] when obtaining input records can fail.
     pub fn evaluate<'a>(
         &self,
         documents: impl IntoIterator<Item = Document<'a>>,
         options: EvaluationOptions,
     ) -> Evaluation {
+        match self.try_evaluate(documents.into_iter().map(Ok::<_, Infallible>), options) {
+            Ok(evaluation) => evaluation,
+            Err(error) => match error.input_error {},
+        }
+    }
+
+    /// Evaluates a replay whose input source can fail.
+    ///
+    /// Stops at the first input error without counting it or polling further records.
+    /// The report retains only its zero-based index; the original error is returned
+    /// separately in [`ReplayError`]. Input errors take precedence over the document
+    /// limit when encountered in the single lookahead used to establish completion.
+    /// `Ok` means no input error was encountered, not that evaluation was complete
+    /// or every document was valid. Inspect [`Evaluation::status`] and coverage.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ReplayError`] with an incomplete report and the original caller
+    /// error. Do not filter errors out of the iterator or turn them into exhaustion.
+    ///
+    /// ```rust
+    /// use json_schema_profiler::{CompiledSchema, Document, EvaluationOptions,
+    ///     EvaluationStatus, EvaluationStop, SchemaOptions};
+    /// use serde_json::json;
+    ///
+    /// let schema = CompiledSchema::new(&json!({"type": "integer"}), SchemaOptions::default())?;
+    /// let value = json!(1);
+    /// let replay = [Ok(Document::new(&value)), Err("source unavailable")];
+    /// let error = schema.try_evaluate(replay, EvaluationOptions::default()).unwrap_err();
+    /// assert_eq!(error.input_error(), &"source unavailable");
+    /// assert_eq!(error.evaluation().valid(), 1);
+    /// assert_eq!(error.evaluation().status(), &EvaluationStatus::Incomplete(
+    ///     EvaluationStop::InputError { document_index: 1 }
+    /// ));
+    /// assert!(!error.evaluation().all_valid());
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn try_evaluate<'a, E>(
+        &self,
+        documents: impl IntoIterator<Item = Result<Document<'a>, E>>,
+        options: EvaluationOptions,
+    ) -> Result<Evaluation, ReplayError<E>> {
         let mut report = Evaluation {
             formats: self.formats,
             ..Evaluation::default()
         };
         let mut diagnostic_bytes = 0;
+        let mut input_error = None;
         for (index, document) in documents.into_iter().enumerate() {
+            let document = match document {
+                Ok(document) => document,
+                Err(error) => {
+                    report.status = EvaluationStatus::Incomplete(EvaluationStop::InputError {
+                        document_index: index as u64,
+                    });
+                    input_error = Some(error);
+                    break;
+                }
+            };
             if index == options.documents {
                 report.status = EvaluationStatus::Incomplete(EvaluationStop::DocumentLimit);
                 break;
@@ -197,7 +251,13 @@ impl CompiledSchema {
             report.diagnostics.clear();
             report.diagnostics_truncated = true;
         }
-        report
+        match input_error {
+            Some(input_error) => Err(ReplayError {
+                evaluation: report,
+                input_error,
+            }),
+            None => Ok(report),
+        }
     }
 
     /// Proves acceptance of this supplied replay only, not identity with an earlier profile.
@@ -207,6 +267,51 @@ impl CompiledSchema {
         options: EvaluationOptions,
     ) -> Result<VerifiedCorpus, Evaluation> {
         let evaluation = self.evaluate(documents, options);
+        self.verify_evaluation(evaluation)
+    }
+
+    /// Proves acceptance of a nonempty, completely evaluated fallible replay.
+    ///
+    /// Completion and lookahead follow [`Self::try_evaluate`]. An input error can
+    /// never produce [`VerifiedCorpus`], even when all preceding documents passed.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`VerificationError::Input`] for a source failure, retaining the
+    /// caller's error separately from its incomplete report. Returns
+    /// [`VerificationError::Evaluation`] for an empty replay, invalid documents,
+    /// or evaluation stopped by a resource limit or validator failure.
+    ///
+    /// ```rust
+    /// use json_schema_profiler::{CompiledSchema, Document, EvaluationOptions,
+    ///     SchemaOptions, VerificationError};
+    /// use serde_json::json;
+    ///
+    /// let schema = CompiledSchema::new(&json!({"type": "integer"}), SchemaOptions::default())?;
+    /// let value = json!(1);
+    /// let verified = schema.try_verify(
+    ///     [Ok::<_, &str>(Document::new(&value))], EvaluationOptions::default()
+    /// ).unwrap();
+    /// assert_eq!(verified.evaluation().valid(), 1);
+    /// let result = schema.try_verify(
+    ///     [Ok(Document::new(&value)), Err("read failed")], EvaluationOptions::default()
+    /// );
+    /// assert!(matches!(result, Err(VerificationError::Input(_))));
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn try_verify<'a, E>(
+        &self,
+        documents: impl IntoIterator<Item = Result<Document<'a>, E>>,
+        options: EvaluationOptions,
+    ) -> Result<VerifiedCorpus, VerificationError<E>> {
+        let evaluation = self
+            .try_evaluate(documents, options)
+            .map_err(VerificationError::Input)?;
+        self.verify_evaluation(evaluation)
+            .map_err(VerificationError::Evaluation)
+    }
+
+    fn verify_evaluation(&self, evaluation: Evaluation) -> Result<VerifiedCorpus, Evaluation> {
         if evaluation.all_valid() {
             Ok(VerifiedCorpus {
                 schema: self.schema.clone(),
@@ -314,6 +419,11 @@ impl Violation {
 #[serde(tag = "reason", rename_all = "snake_case")]
 pub enum EvaluationStop {
     DocumentLimit,
+    /// The input source failed before this zero-based record could be evaluated.
+    /// The caller's error is retained separately in [`ReplayError`].
+    InputError {
+        document_index: u64,
+    },
     ValueLimit {
         document_index: u64,
         limit: ValueLimit,
@@ -365,6 +475,100 @@ impl Evaluation {
     }
     pub fn all_valid(&self) -> bool {
         self.status == EvaluationStatus::Complete && self.processed > 0 && self.invalid == 0
+    }
+}
+
+/// A caller input error paired with the incomplete evaluation preceding it.
+///
+/// The report retains no input error payload. This wrapper owns the original
+/// error, which may contain sensitive data; it is not serializable and its
+/// `Debug`/`Display` output omits the payload. Access it explicitly through
+/// [`Self::input_error`], [`Self::into_parts`], or [`Error::source`]. No error trait
+/// bounds are required to evaluate or recover the caller's error.
+pub struct ReplayError<E> {
+    evaluation: Evaluation,
+    input_error: E,
+}
+
+impl<E> ReplayError<E> {
+    /// Returns the incomplete report for records evaluated before the source failed.
+    pub fn evaluation(&self) -> &Evaluation {
+        &self.evaluation
+    }
+
+    /// Borrows the original caller error, which may contain sensitive data.
+    pub fn input_error(&self) -> &E {
+        &self.input_error
+    }
+
+    /// Recovers the bounded report and the original error without cloning either.
+    pub fn into_parts(self) -> (Evaluation, E) {
+        (self.evaluation, self.input_error)
+    }
+}
+
+impl<E> fmt::Debug for ReplayError<E> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ReplayError")
+            .field("evaluation", &self.evaluation)
+            .finish_non_exhaustive()
+    }
+}
+
+impl<E> fmt::Display for ReplayError<E> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("replay input failed")
+    }
+}
+
+impl<E: Error + 'static> Error for ReplayError<E> {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        Some(&self.input_error)
+    }
+}
+
+/// A failed fallible verification, with source failure and coverage failure distinct.
+pub enum VerificationError<E> {
+    /// The input source failed; includes its original error and incomplete report.
+    Input(ReplayError<E>),
+    /// Evaluation was empty, rejected documents, or stopped before completion.
+    Evaluation(Evaluation),
+}
+
+impl<E> VerificationError<E> {
+    /// Returns the bounded report for either failure kind.
+    pub fn evaluation(&self) -> &Evaluation {
+        match self {
+            Self::Input(error) => error.evaluation(),
+            Self::Evaluation(evaluation) => evaluation,
+        }
+    }
+}
+
+impl<E> fmt::Debug for VerificationError<E> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Input(error) => f.debug_tuple("Input").field(error).finish(),
+            Self::Evaluation(evaluation) => f.debug_tuple("Evaluation").field(evaluation).finish(),
+        }
+    }
+}
+
+impl<E> fmt::Display for VerificationError<E> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Input(error) => error.fmt(f),
+            Self::Evaluation(_) => f.write_str("replay did not establish complete valid coverage"),
+        }
+    }
+}
+
+impl<E: Error + 'static> Error for VerificationError<E> {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            Self::Input(error) => Some(error),
+            Self::Evaluation(_) => None,
+        }
     }
 }
 
