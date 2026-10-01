@@ -26,7 +26,7 @@ rstest = "0.26"
 schema_analysis_original = { package = "schema_analysis", version = "=0.7.0" }
 
 [workspace]
-exclude = ["vendor/schema_analysis"]
+exclude = ["vendor/schema_analysis", "consumers/inventory-trial"]
 
 [[bench]]
 name = "profiling_criterion"

@@ -1,0 +1,19 @@
+[package]
+name = "inventory-profiler-trial"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.90"
+license = "MIT"
+publish = false
+
+[dependencies]
+json-schema-profiler = { path = "../.." }
+serde_json = { version = "1", features = ["arbitrary_precision"] }
+
+[dev-dependencies]
+rstest = "0.26"
+
+[workspace]
+
+[lints.rust]
+unsafe_code = "forbid"

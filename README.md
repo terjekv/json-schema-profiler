@@ -36,6 +36,8 @@ if let Suggestion::Candidate(candidate) = profile.suggest(InferencePolicy::expan
 ```
 
 Run `cargo run --example explore` for a report and both policy outcomes.
+The [standalone inventory trial](docs/consumer-trial.md) exercises the complete
+workflow with snapshot revisions, fallible replay, and deliberate failures.
 
 Strict mode rejects unrelated mixed types, requires properties present in every
 applicable object, and closes selected object subtrees. Expansive mode permits
