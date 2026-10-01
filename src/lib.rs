@@ -1,6 +1,6 @@
 //! Experimental, bounded corpus profiling using `schema_analysis` for structural merging.
 //!
-//! ```
+//! ```rust
 //! use json_schema_profiler::{InferencePolicy, Profiler, Suggestion};
 //! use serde_json::json;
 //!

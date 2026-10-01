@@ -159,7 +159,7 @@ submit a focused upstream change with these measurements when contributing it.
 No upstream issue or PR was posted by this work.
 
 The library currently adopts the correction through a direct path dependency on
-the [vendored runtime source](../vendor/schema_analysis/README.md), preserving its
+the [vendored runtime source](https://github.com/terjekv/json-schema-profiler/tree/main/vendor/schema_analysis), preserving its
 MIT/Apache licenses and original runtime feature/dependency declarations. The
 registry copy is a development-only differential-test oracle. This does not
 expose upstream implementation types through the profiler API.

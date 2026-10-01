@@ -5,6 +5,7 @@ cargo fmt --all -- --check
 cargo clippy --all-targets --locked -- -D warnings
 cargo test --all-targets --locked
 cargo test --doc --locked
+RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --locked
 cargo fmt --manifest-path consumers/inventory-trial/Cargo.toml --all -- --check
 cargo clippy --manifest-path consumers/inventory-trial/Cargo.toml --all-targets --locked -- -D warnings
 cargo test --manifest-path consumers/inventory-trial/Cargo.toml --locked

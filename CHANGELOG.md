@@ -4,6 +4,11 @@
 
 ### Added
 
+- Release-readiness audit and a packaged-consumer workflow example covering
+  accepted, rejected, and source-failed replay, with compiling API/verification
+  boundary documentation and explicit publication blockers.
+- Generated API documentation checks on stable and the MSRV, with README links
+  that also work when rendered outside the repository checkout.
 - Standalone synthetic inventory consumer and CI coverage demonstrating snapshot
   identity/revisions, reviewed policies, fallible replay, bounded diagnostics and
   rejection of stale schema application. The library API is unchanged.
@@ -38,6 +43,8 @@
 
 ### Changed
 
+- Refresh both development lockfiles from yanked `yoke-derive` 0.8.3 to 0.8.4;
+  Rust 1.90 remains the supported minimum. Public APIs are unchanged.
 - **Breaking:** `EvaluationStop` now includes `InputError { document_index }`.
   Update exhaustive matches and serialized-report consumers to handle the
   `input_error` reason. Existing `evaluate`/`verify` signatures and infallible

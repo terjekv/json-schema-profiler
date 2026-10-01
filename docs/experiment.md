@@ -9,8 +9,9 @@ records the original target; the README documents the current API.
 Keep a separate `json-schema-profiler` library, and provisionally keep
 `schema_analysis` as its internal observation engine. The extension API is useful:
 it handles incremental structural merging, object variants, and recursive arrays
-without requiring us to maintain a second aggregation engine. No fork or upstream
-patch is needed for this prototype.
+without requiring us to maintain a second aggregation engine. The initial
+prototype needed no fork or upstream patch; the subsequent
+[wide-object optimization](wide-objects.md) now uses a focused local patch.
 
 The separate library is warranted when callers need explanations, counts,
 selected subtrees and policy-controlled schemas. For callers who only want a
@@ -112,4 +113,6 @@ semantics or canonical queryable report.
 The engine remains reusable after adding document witnesses: they fit in the
 existing admission index. Keep the upstream correctness/performance proposals
 focused; broader reference support or streaming parsing can be separate future
-work. The crate remains local and unreleased pending repository publication.
+work. The repository is public; the crate remains unreleased with publication
+disabled. The [consumer trial](consumer-trial.md) exercises application ownership
+and replay, while the [release audit](release.md) records publication blockers.

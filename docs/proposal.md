@@ -373,8 +373,10 @@ Release gates:
 - Dependency licenses, MSRV, package contents, metadata, and crate-name
   availability are checked before publication.
 
-The repository scaffold intentionally has no implementation dependencies yet.
-Choosing versions belongs to the reuse spike; package publication is disabled.
+At proposal time, the repository scaffold had no implementation dependencies;
+version selection belonged to the reuse spike. The implementation now pins its
+inference and validation adapters. See the [release audit](release.md) for the
+current dependency and packaging state. Package publication remains disabled.
 
 ## A later consuming-application integration
 

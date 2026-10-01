@@ -4,7 +4,8 @@ use serde::Serialize;
 
 use crate::{PathSegment, ProfileError, ProfilePath};
 
-/// A validated collection of selected subtrees, all sharing one inference policy.
+/// Selected subtrees with compatible ancestor container types.
+/// Inference policy is supplied separately, including any per-path overrides.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct Scope {
     paths: Vec<ProfilePath>,
