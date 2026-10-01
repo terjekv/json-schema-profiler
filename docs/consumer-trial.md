@@ -2,7 +2,7 @@
 
 Completed 2026-10-01 using the public API after fallible replay landed in
 [PR #2](https://github.com/terjekv/json-schema-profiler/pull/2).
-The [inventory application](../consumers/inventory-trial/src/main.rs) is a separate,
+The [inventory application](https://github.com/terjekv/json-schema-profiler/blob/main/consumers/inventory-trial/src/main.rs) is a separate,
 unpublished Cargo package with its own lockfile. It depends on this checkout
 through a path dependency; no library internals or development-only upstream
 oracle are used by its runtime. This is the application trial for
@@ -48,13 +48,13 @@ and remain unconstrained by the generated schema.
 | Changed revision | Rejected both before replay and between verification and application |
 | Another inventory at the same revision number | Rejected using consumer-owned dataset identity |
 
-Fourteen focused cases in [the consumer tests](../consumers/inventory-trial/src/tests.rs)
+Fourteen focused cases in [the consumer tests](https://github.com/terjekv/json-schema-profiler/blob/main/consumers/inventory-trial/src/tests.rs)
 cover these contracts, including negative inputs with missing required cores,
 boolean cores, and an unexpected hardware property.
 
 ## Snapshot and ownership boundaries
 
-The [application model](../consumers/inventory-trial/src/inventory.rs) owns dataset
+The [application model](https://github.com/terjekv/json-schema-profiler/blob/main/consumers/inventory-trial/src/inventory.rs) owns dataset
 identity, a monotonic revision, source strings, parsed records, and the applied
 schema. Private fields carry the identity/revision from analysis through proposal,
 compilation, and successful verification. Every row replacement advances the

@@ -17,6 +17,8 @@ pub enum FormatPolicy {
     Assert,
 }
 
+/// Compilation options. Formats are annotations by default; schema admission is
+/// limited to 10,000 nodes, depth 64, and 1 MB of compact JSON.
 #[derive(Clone, Debug)]
 pub struct SchemaOptions {
     formats: FormatPolicy,
@@ -75,6 +77,25 @@ pub struct CompiledSchema {
 }
 
 impl CompiledSchema {
+    /// Compiles a caller-supplied schema using the supported Draft 2020-12 subset.
+    /// The compiled value owns a schema copy, including any literal annotations,
+    /// `const`, and `enum` values. External retrieval is always disabled.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SchemaError`] for malformed schemas, unsupported drafts,
+    /// vocabularies, formats or references, exceeded limits, or compilation failure.
+    /// A successful compilation says nothing about acceptance of a document.
+    ///
+    /// ```rust
+    /// use json_schema_profiler::{CompiledSchema, Document, EvaluationOptions, SchemaOptions};
+    /// use serde_json::json;
+    /// let compiled = CompiledSchema::new(&json!({"type": "integer"}), SchemaOptions::default())?;
+    /// let value = json!("not an integer");
+    /// assert!(compiled.verify([Document::new(&value)], EvaluationOptions::default()).is_err());
+    /// assert!(CompiledSchema::new(&json!({"type": "unknown"}), SchemaOptions::default()).is_err());
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn new(schema: &Value, options: SchemaOptions) -> Result<Self, SchemaError> {
         options
             .limits
@@ -573,6 +594,19 @@ impl<E: Error + 'static> Error for VerificationError<E> {
 }
 
 /// Evidence that every document of one nonempty, completely evaluated replay passed.
+/// Obtain this through [`CompiledSchema::verify`] or [`CompiledSchema::try_verify`].
+/// It retains the schema and evaluation report, not the replay's document values.
+/// It does not identify the dataset or guarantee acceptance of future documents.
+/// Callers cannot construct it from an unchecked report:
+///
+/// ```rust,compile_fail
+/// use json_schema_profiler::{Evaluation, VerifiedCorpus};
+/// use serde_json::json;
+/// let fabricated = VerifiedCorpus {
+///     schema: json!(true),
+///     evaluation: Evaluation::default(),
+/// };
+/// ```
 #[derive(Clone, Debug, Serialize)]
 pub struct VerifiedCorpus {
     schema: Value,

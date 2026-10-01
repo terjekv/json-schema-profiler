@@ -156,9 +156,12 @@ Memory regressions therefore still require inspecting the DHAT evidence.
 Initial checks passed for workflow syntax, v1.3.0 matrix discovery (four correctly
 routed targets), and v1.3.0 metric collectors against all 65 timing and 23
 instruction results. The local collector check used isolated copies of the
-latest release artifacts to exclude older runs and saved baselines. There is no
-configured remote or hosted PR run yet; this does not claim an end-to-end GitHub
-comparison or publication.
+latest release artifacts to exclude older runs and saved baselines. Those initial
+checks preceded repository publication and the hosted comparison. Hosted CI and
+benchmark comparisons subsequently passed in
+[PR #1](https://github.com/terjekv/json-schema-profiler/pull/1) and
+[PR #2](https://github.com/terjekv/json-schema-profiler/pull/2); crate publication
+remains disabled.
 
 The v0.0.1 run extends discovery to six targets and adds 41 Criterion and 12
 Gungraun cases for validation, compilation, evidence and the complete workflow.

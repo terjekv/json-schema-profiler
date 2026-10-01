@@ -1,6 +1,6 @@
 # Locked dependency license inventory
 
-Generated 2026-09-24 from `cargo metadata --locked`. This includes transitive
+Reconciled 2026-10-01 against `cargo metadata --locked`. This includes transitive
 and development dependencies and target-specific lockfile entries; it is a
 metadata inventory, not a bundled collection of license texts. Entries declaring
 alternative licenses allow a permissive MIT/Apache option; the inventory does
@@ -8,11 +8,12 @@ not select LGPL for an `OR` expression. Unicode, Zlib and other listed notice
 requirements still apply to the corresponding dependencies.
 
 The local `schema_analysis` 0.7.0 runtime copy retains its original
-[MIT](../vendor/schema_analysis/LICENSE-MIT) and
-[Apache-2.0](../vendor/schema_analysis/LICENSE-APACHE) license texts. Its runtime
+[MIT](../licenses/schema_analysis/LICENSE-MIT) and
+[Apache-2.0](../licenses/schema_analysis/LICENSE-APACHE) license texts. These copies
+also accompany the source patch in the Cargo archive. Its runtime
 dependencies are unchanged. The registry copy of the same version is also used
 as a development-only differential-test oracle; both copies have the same
-declared license shown below. See the [patch provenance](../vendor/schema_analysis/README.md).
+declared license shown below. See the [patch provenance](../licenses/schema_analysis/README.md).
 
 | Package | Version | Declared license |
 | --- | --- | --- |
@@ -187,7 +188,7 @@ declared license shown below. See the [patch provenance](../vendor/schema_analys
 | `wit-bindgen` | 0.57.1 | Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT |
 | `writeable` | 0.6.4 | Unicode-3.0 |
 | `yoke` | 0.8.3 | Unicode-3.0 |
-| `yoke-derive` | 0.8.3 | Unicode-3.0 |
+| `yoke-derive` | 0.8.4 | Unicode-3.0 |
 | `zerocopy` | 0.8.58 | BSD-2-Clause OR Apache-2.0 OR MIT |
 | `zerocopy-derive` | 0.8.58 | BSD-2-Clause OR Apache-2.0 OR MIT |
 | `zerofrom` | 0.1.8 | Unicode-3.0 |

@@ -3,7 +3,7 @@
 An experimental Rust library that profiles JSON document corpora and proposes
 JSON Schemas with explicit policies. It uses `schema_analysis` 0.7.0 internally
 for structural aggregation, with a counters-only context and a JSON input adapter.
-The dependency currently includes a [local object-presence optimization](docs/wide-objects.md)
+The dependency currently includes a [local object-presence optimization](https://github.com/terjekv/json-schema-profiler/blob/main/docs/wide-objects.md)
 that removes repeated key scans while preserving upstream aggregation behavior.
 
 **Status: v0.0.1 implementation, unreleased.** Profiling, document evidence,
@@ -36,7 +36,9 @@ if let Suggestion::Candidate(candidate) = profile.suggest(InferencePolicy::expan
 ```
 
 Run `cargo run --example explore` for a report and both policy outcomes.
-The [standalone inventory trial](docs/consumer-trial.md) exercises the complete
+Run `cargo run --example package_workflow` for successful, rejected, and
+source-failed replay through the public API.
+The [standalone inventory trial](https://github.com/terjekv/json-schema-profiler/blob/main/docs/consumer-trial.md) exercises the complete
 workflow with snapshot revisions, fallible replay, and deliberate failures.
 
 Strict mode rejects unrelated mixed types, requires properties present in every
@@ -184,13 +186,13 @@ elsewhere, and selected-subtree ancestor objects remain open.
   JSON bytes before validation; number tokens are capped at 1,024 bytes and
   exponent magnitude 4,096 to bound arbitrary-precision expansion.
 - These are logical and encoded-output bounds, not exact heap or execution-time
-  guarantees. See the [resource audit](docs/resources.md).
+  guarantees. See the [resource audit](https://github.com/terjekv/json-schema-profiler/blob/main/docs/resources.md).
 - Any ingestion error makes the profiler terminally incomplete. `finish()` rejects
   incomplete and empty corpora instead of returning a partial success.
 
-Read the [integration findings](docs/experiment.md) for measured overhead,
-upstream gaps, and the recommendation. The [original proposal](docs/proposal.md)
-describes the larger v0.0.1 target; the [upstream assessment](docs/upstream-assessment.md)
+Read the [integration findings](https://github.com/terjekv/json-schema-profiler/blob/main/docs/experiment.md) for measured overhead,
+upstream gaps, and the recommendation. The [original proposal](https://github.com/terjekv/json-schema-profiler/blob/main/docs/proposal.md)
+describes the larger v0.0.1 target; the [upstream assessment](https://github.com/terjekv/json-schema-profiler/blob/main/docs/upstream-assessment.md)
 records source review of `schema_analysis` and `genson-rs`.
 
 The evaluator supports a documented Draft 2020-12 subset with local JSON Pointer
@@ -198,7 +200,7 @@ references. It rejects external references, recursive schemas, dynamic reference
 named-anchor references and nested resource IDs. Formats are annotations unless
 `FormatPolicy::Assert` is selected. Regex assertions use the Rust regex engine;
 lookaround and backreferences are rejected. See the
-[tested keyword and format matrix](docs/validation.md).
+[tested keyword and format matrix](https://github.com/terjekv/json-schema-profiler/blob/main/docs/validation.md).
 
 ## Development
 
@@ -214,14 +216,14 @@ cargo clippy --all-targets --locked -- -D warnings
 npx --yes markdownlint-cli2@0.23.3 --config .markdownlint.json "**/*.md" "!target"
 ```
 
-See [benchmark methodology and commands](docs/benchmarks.md). PR comparison uses
+See [benchmark methodology and commands](https://github.com/terjekv/json-schema-profiler/blob/main/docs/benchmarks.md). PR comparison uses
 `terjekv/rust-pr-bench` v1.3.0, pinned to its release commit, with both Criterion
 and Gungraun. CI checks all six benchmark targets. See the
-[hosted CI trial](docs/ci-trial.md) for the comparison contract and review steps.
+[hosted CI trial](https://github.com/terjekv/json-schema-profiler/blob/main/docs/ci-trial.md) for the comparison contract and review steps.
 
 ## License
 
-MIT; see [LICENSE](LICENSE).
+MIT; see [LICENSE](https://github.com/terjekv/json-schema-profiler/blob/main/LICENSE).
 
-See [release readiness and compatibility](docs/release.md) and the
-[dependency license inventory](docs/dependency-licenses.md).
+See [release readiness and compatibility](https://github.com/terjekv/json-schema-profiler/blob/main/docs/release.md) and the
+[dependency license inventory](https://github.com/terjekv/json-schema-profiler/blob/main/docs/dependency-licenses.md).
