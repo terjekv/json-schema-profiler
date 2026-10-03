@@ -134,3 +134,18 @@ Pointers and IDs can contain sensitive names. Read the
 [resource audit](resources.md) for retained-output and temporary-memory boundaries
 and the [upstream API documentation](https://docs.rs/jsonschema/0.49.9/jsonschema/)
 for the underlying validator.
+
+### Owned replay
+
+`evaluate_owned`, `verify_owned`, `try_evaluate_owned` and `try_verify_owned` take
+`OwnedDocument` records from a consumer-owned iterator. The fallible variants
+accept `Result<OwnedDocument, E>`. Each record owns its JSON value and optional ID,
+is evaluated through the same implementation as borrowed replay, then is dropped
+before requesting the next record. No entire parsed corpus is accumulated.
+All source-error, limit-lookahead, exact-count, diagnostic, format-policy and
+verification contracts above also apply. Reports do not retain owned input values.
+
+`examples/on_demand.rs` demonstrates a caller-owned JSON Lines reader. Reader and
+parser memory, source errors and snapshot identity remain consumer responsibilities.
+Paired positive/negative tests compare owned and borrowed reports and exercise
+parsing errors, invalid data, zero/exact document limits and value admission.

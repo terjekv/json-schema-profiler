@@ -3,7 +3,7 @@ use std::{error::Error, fmt};
 use serde::Serialize;
 use serde_json::{Map, Value, json};
 
-use crate::{JsonKind, Profile, ProfileError, ProfilePath, Scope, bounded::json_size};
+use crate::{Frequency, JsonKind, Profile, ProfileError, ProfilePath, Scope, bounded::json_size};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -24,6 +24,9 @@ pub enum MixedTypes {
 pub enum Presence {
     Observed,
     Optional,
+    /// Require a property present in at least this fraction of applicable objects.
+    /// Below 100%, this deliberately rejects observed objects missing the property.
+    AtLeast(Frequency),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
@@ -43,6 +46,12 @@ pub struct InferencePolicy {
 }
 
 impl InferencePolicy {
+    /// Allows mixed types and new properties, requiring consistently present fields.
+    pub fn balanced() -> Self {
+        Self::strict()
+            .with_mixed_types(MixedTypes::Union)
+            .with_extra_properties(ExtraProperties::Allow)
+    }
     pub fn strict() -> Self {
         Self {
             mixed_types: MixedTypes::Reject,
@@ -126,6 +135,7 @@ pub struct SuggestionOptions {
     policy: InferencePolicy,
     overrides: Vec<PathPolicy>,
     limits: OutputLimits,
+    minimum_documents: u64,
 }
 
 impl SuggestionOptions {
@@ -134,11 +144,27 @@ impl SuggestionOptions {
             policy,
             overrides: Vec::new(),
             limits: OutputLimits::default(),
+            minimum_documents: 1,
         }
     }
     pub fn with_output_limits(mut self, limits: OutputLimits) -> Self {
         self.limits = limits;
         self
+    }
+    /// Require at least this many distinct contributing records at every reported path.
+    /// Repeated array items count once per document. A value of one preserves the
+    /// default empty-array behavior; higher thresholds also require item evidence.
+    ///
+    /// # Errors
+    /// Rejects zero; the default is one contributing record.
+    pub fn with_minimum_documents(mut self, minimum: u64) -> Result<Self, ProfileError> {
+        if minimum == 0 {
+            return Err(ProfileError::InvalidOptions(
+                "minimum documents must be nonzero".into(),
+            ));
+        }
+        self.minimum_documents = minimum;
+        Ok(self)
     }
     pub fn with_path_policy(
         mut self,
@@ -211,6 +237,17 @@ impl Findings {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum Finding {
+    LowEvidence {
+        path: ProfilePath,
+        documents: u64,
+        minimum: u64,
+    },
+    RequiredFromFrequency {
+        path: ProfilePath,
+        present: u64,
+        applicable_parents: u64,
+        threshold: Frequency,
+    },
     MixedTypes {
         path: ProfilePath,
         types: Vec<JsonKind>,
@@ -303,6 +340,17 @@ impl Profile {
         for path in self.scope.paths() {
             if self.field(path).is_none_or(|field| field.present() == 0) {
                 findings.push(Finding::UnobservedSelection { path: path.clone() })?;
+            }
+        }
+        if options.minimum_documents > 1 {
+            for field in self.fields() {
+                if field.evidence().documents() < options.minimum_documents {
+                    findings.push(Finding::LowEvidence {
+                        path: field.path().clone(),
+                        documents: field.evidence().documents(),
+                        minimum: options.minimum_documents,
+                    })?;
+                }
             }
         }
         if !findings.values.is_empty() {
@@ -398,8 +446,26 @@ impl Profile {
             for name in &field.properties {
                 let child_path = path.clone().property(name);
                 let child = self.field(&child_path).expect("property exists");
-                if options.at(&child_path).presence == Presence::Observed && child.missing() == 0 {
+                let presence = options.at(&child_path).presence;
+                let is_required = match presence {
+                    Presence::Observed => child.missing() == 0,
+                    Presence::Optional => false,
+                    Presence::AtLeast(threshold) => {
+                        threshold.reached(child.present(), child.applicable_parents())
+                    }
+                };
+                if is_required {
                     required.push(name.clone());
+                    if let Presence::AtLeast(threshold) = presence
+                        && child.missing() > 0
+                    {
+                        findings.push(Finding::RequiredFromFrequency {
+                            path: child_path.clone(),
+                            present: child.present(),
+                            applicable_parents: child.applicable_parents(),
+                            threshold,
+                        })?;
+                    }
                 } else {
                     findings.push(Finding::OptionalProperty {
                         path: child_path.clone(),

@@ -20,7 +20,14 @@ fn compare(c: &mut Criterion) {
             group.throughput(Throughput::Elements(documents as u64));
             for engine in ["minimal", "default", "counts", "profiler"] {
                 group.bench_with_input(
-                    BenchmarkId::new(engine, documents),
+                    BenchmarkId::new(
+                        if engine == "profiler" {
+                            engine.to_owned()
+                        } else {
+                            format!("published_{engine}")
+                        },
+                        documents,
+                    ),
                     &corpus,
                     |b, corpus| {
                         b.iter(|| upstream::run(engine, black_box(corpus)));
@@ -39,7 +46,17 @@ fn width_scaling(c: &mut Criterion) {
             let corpus = support::corpus(workload, 64, width);
             for engine in ["counts", "profiler"] {
                 group.bench_with_input(
-                    BenchmarkId::new(format!("{workload}/{engine}"), width),
+                    BenchmarkId::new(
+                        format!(
+                            "{workload}/{}",
+                            if engine == "profiler" {
+                                engine.to_owned()
+                            } else {
+                                format!("published_{engine}")
+                            }
+                        ),
+                        width,
+                    ),
                     &corpus,
                     |b, corpus| b.iter(|| upstream::run(engine, black_box(corpus))),
                 );

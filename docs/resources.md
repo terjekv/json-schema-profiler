@@ -10,6 +10,7 @@ state independently of report retention.
 | Profile ingestion | Documents, visited nodes, depth, observed paths and logical path payload | Terminal profiler failure; no completed profile |
 | Profile finalization | Compact serialized profile bytes | Explicit `ReportBytes` error |
 | Witnesses | Entries per path/kind, global entries, global ID payload; IDs at most 256 bytes | Mark truncation; exact counts remain complete |
+| Discovery | Findings and compact report bytes | Explicit error; no partial discovery |
 | Suggestion | At most 128 disjoint overrides; findings, schema bytes and suggestion bytes | Explicit error; no partial candidate |
 | Compilation | Schema nodes/depth/bytes/numbers, supported references, expansion depth and regex limits | Compilation/configuration error |
 | Replay input | Documents and per-document nodes/depth/bytes/numbers | Incomplete evaluation; offending document uncounted |
@@ -60,3 +61,10 @@ Tests cover cumulative admission, repeated array paths, failed finalization,
 witness truncation, escaped output budgets, schema limits, reference cycles/depth,
 large exponents, diagnostic caps and partial coverage. Benchmarks record
 allocation volume, not a universal maximum live-memory figure.
+
+Owned replay retains one current parsed record and the existing bounded report.
+It drops that record before polling the next (including the final lookahead).
+The iterator may itself retain arbitrary storage; this is outside library bounds.
+Parsing and allocation happen before `ValueLimits` preflight. The example reader
+uses immutable source bytes as a synthetic snapshot, not a parsing-memory limit.
+Discovery retains structural paths/counts and options, without scalar values or IDs.

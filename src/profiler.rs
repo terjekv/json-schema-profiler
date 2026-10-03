@@ -1,4 +1,4 @@
-use schema_analysis::InferredSchema;
+use crate::engine::InferredSchema;
 use serde::{Deserialize, de::DeserializeSeed};
 use serde_json::Value;
 

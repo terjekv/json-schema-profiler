@@ -11,17 +11,17 @@ fn setup(workload: &'static str, engine: &'static str) -> (&'static str, Vec<Val
 }
 
 #[library_benchmark(setup = setup)]
-#[bench::homogeneous_minimal("homogeneous", "minimal")]
-#[bench::homogeneous_default("homogeneous", "default")]
-#[bench::homogeneous_counts("homogeneous", "counts")]
+#[bench::published_homogeneous_minimal("homogeneous", "minimal")]
+#[bench::published_homogeneous_default("homogeneous", "default")]
+#[bench::published_homogeneous_counts("homogeneous", "counts")]
 #[bench::homogeneous_profiler("homogeneous", "profiler")]
-#[bench::sparse_minimal("sparse", "minimal")]
-#[bench::sparse_default("sparse", "default")]
-#[bench::sparse_counts("sparse", "counts")]
+#[bench::published_sparse_minimal("sparse", "minimal")]
+#[bench::published_sparse_default("sparse", "default")]
+#[bench::published_sparse_counts("sparse", "counts")]
 #[bench::sparse_profiler("sparse", "profiler")]
-#[bench::arrays_counts("arrays", "counts")]
+#[bench::published_arrays_counts("arrays", "counts")]
 #[bench::arrays_profiler("arrays", "profiler")]
-#[bench::wide_counts("wide", "counts")]
+#[bench::published_wide_counts("wide", "counts")]
 #[bench::wide_profiler("wide", "profiler")]
 fn compare((engine, corpus): (&str, Vec<Value>)) -> Vec<Value> {
     upstream::run(engine, black_box(&corpus));

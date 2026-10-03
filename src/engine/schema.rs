@@ -1,17 +1,20 @@
+// Derived from schema_analysis 0.7.0, MIT OR Apache-2.0.
+// See licenses/schema_analysis for attribution and maintained-source provenance.
+
 use std::mem;
 
 use ordermap::{OrderMap, map::Entry};
 use serde::{Deserialize, Serialize};
 
-use crate::{Coalesce, StructuralEq, context::Context, context::DefaultContext};
+use crate::engine::{Coalesce, context::Context};
 
 /// This enum is the core output of the analysis, it describes the structure of a document.
 ///
-/// Each variant also contains [context](crate::context) data that allows it to store information
+/// Each variant also contains [context](crate::engine::context) data that allows it to store information
 /// about the values it has encountered.
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
-pub enum Schema<C: Context = DefaultContext> {
+pub enum Schema<C: Context = ()> {
     /// The Null variant is a special one that is only ever found when a document has a single
     /// null value at the root of the document.
     /// Null values in [Struct](Schema::Struct)s or [Sequence](Schema::Sequence)s are instead
@@ -41,7 +44,7 @@ pub enum Schema<C: Context = DefaultContext> {
     /// Note: currently there is not a true map and only strings may be used as keys.
     Struct {
         /// Each [String] key gets assigned a [Field].
-        /// Currently we are using a [BTreeMap], but that might change in the future.
+        /// Fields retain their first-seen order in an OrderMap.
         fields: OrderMap<String, Field<C>>,
         /// The context aggregates information about the struct.
         /// It is passed a vector of the key names.
@@ -67,7 +70,7 @@ pub enum Schema<C: Context = DefaultContext> {
     serialize = "Schema<C>: Serialize",
     deserialize = "Schema<C>: Deserialize<'de>"
 ))]
-pub struct Field<C: Context = DefaultContext> {
+pub struct Field<C: Context = ()> {
     /// The status holds information on the the field, like whether it might be null or
     /// missing altogether. Duplicate fields are also recorded.
     #[serde(flatten)]
@@ -101,7 +104,6 @@ pub struct FieldStatus {
     /// Sometimes a field might appear more than once in the same [Struct](Schema::Struct).
     /// In that case all instances are considered, but this flag is also enabled.
     /// This is useful to spot suspicious data, but also to detect sequences in xml files.
-    /// See [here](crate::helpers::xml) for more info.
     pub may_be_duplicate: bool,
 }
 
@@ -109,115 +111,8 @@ pub struct FieldStatus {
 // Schema implementations
 //
 impl<C: Context> Schema<C> {
-    /// Sorts the fields of the schema by their name (using [String::cmp]).
-    pub fn sort_fields(&mut self) {
-        match self {
-            Schema::Null(_)
-            | Schema::Boolean(_)
-            | Schema::Integer(_)
-            | Schema::Float(_)
-            | Schema::String(_)
-            | Schema::Bytes(_) => {}
-            Schema::Sequence { field, context: _ } => {
-                field.sort_fields();
-            }
-            Schema::Struct { fields, context: _ } => {
-                fields.sort_keys();
-                for field in fields.values_mut() {
-                    field.sort_fields();
-                }
-            }
-            Schema::Union { variants } => {
-                variants.sort_by(schema_cmp);
-                for variant in variants {
-                    variant.sort_fields();
-                }
-            }
-        }
-    }
-    /// Sorts/normalises the order of [Schema::Union] variants.
-    pub fn sort_variants(&mut self) {
-        match self {
-            Schema::Null(_)
-            | Schema::Boolean(_)
-            | Schema::Integer(_)
-            | Schema::Float(_)
-            | Schema::String(_)
-            | Schema::Bytes(_) => {}
-            Schema::Sequence { field, context: _ } => {
-                field.sort_variants();
-            }
-            Schema::Struct { fields, context: _ } => {
-                for field in fields.values_mut() {
-                    field.sort_variants();
-                }
-            }
-            Schema::Union { variants } => {
-                variants.sort_by(schema_cmp);
-                for variant in variants {
-                    variant.sort_variants();
-                }
-            }
-        }
-    }
     fn take(&mut self) -> Self {
         mem::replace(self, Self::Null(C::Null::default()))
-    }
-}
-impl<C: Context> StructuralEq for Schema<C>
-where
-    Self: Clone,
-{
-    fn structural_eq(&self, other: &Self) -> bool {
-        use Schema::*;
-        match (self, other) {
-            (Null(_), Null(_)) => true,
-            (Boolean(_), Boolean(_)) => true,
-            (Integer(_), Integer(_)) => true,
-            (Float(_), Float(_)) => true,
-            (String(_), String(_)) => true,
-            (Bytes(_), Bytes(_)) => true,
-
-            (Sequence { field: field_1, .. }, Sequence { field: field_2, .. }) => {
-                field_1.structural_eq(field_2)
-            }
-
-            (
-                Struct {
-                    fields: fields_1, ..
-                },
-                Struct {
-                    fields: fields_2, ..
-                },
-            ) => {
-                fields_1.len() == fields_2.len()
-                    && fields_1.iter().all(|(sk, sv)| {
-                        let Some(ov) = fields_2.get(sk) else {
-                            return false;
-                        };
-                        sv.structural_eq(ov)
-                    })
-            }
-
-            (Union { variants: s }, Union { variants: o }) => {
-                let mut s = s.clone();
-                let mut o = o.clone();
-                s.sort_by(schema_cmp);
-                o.sort_by(schema_cmp);
-                s.structural_eq(&o)
-            }
-
-            // Listing these out makes sure it fails if new variants are added.
-            (Null(_), _)
-            | (Boolean(_), _)
-            | (Integer(_), _)
-            | (Float(_), _)
-            | (String(_), _)
-            | (Bytes(_), _)
-            | (Sequence { .. }, _)
-            | (Struct { .. }, _)
-            | (Union { .. }, _) => false,
-        }
     }
 }
 impl<C: Context> Coalesce for Schema<C> {
@@ -416,17 +311,6 @@ impl<C: Context> Field<C> {
             schema: Some(schema),
         }
     }
-
-    fn sort_fields(&mut self) {
-        if let Some(schema) = &mut self.schema {
-            schema.sort_fields();
-        }
-    }
-    fn sort_variants(&mut self) {
-        if let Some(schema) = &mut self.schema {
-            schema.sort_variants();
-        }
-    }
 }
 impl<C: Context> Coalesce for Field<C>
 where
@@ -445,15 +329,6 @@ where
         }
     }
 }
-impl<C: Context> StructuralEq for Field<C>
-where
-    Schema<C>: StructuralEq,
-{
-    fn structural_eq(&self, other: &Self) -> bool {
-        self.status == other.status && self.schema.structural_eq(&other.schema)
-    }
-}
-
 //
 // FieldStatus implementations
 //
@@ -462,10 +337,6 @@ impl FieldStatus {
     /// Otherwise no changes are made.
     pub fn allow_duplicates(&mut self, is_duplicate: bool) {
         self.may_be_duplicate |= is_duplicate;
-    }
-    /// `true` if the status allows for null or missing values.
-    pub fn is_option(&self) -> bool {
-        self.may_be_null || self.may_be_missing
     }
 }
 impl Coalesce for FieldStatus {
@@ -481,33 +352,10 @@ impl Coalesce for FieldStatus {
 // Helper functions
 //
 
-/// A helper function that returns the [Ordering](std::cmp::Ordering) of two [Schema]s
-/// to help in comparing two [Schema::Union].
-/// Since a [Schema::Union] should never hold two schemas of the same type, it is enough to
-/// just compare the top level without recursion.
-fn schema_cmp<C: Context>(first: &Schema<C>, second: &Schema<C>) -> std::cmp::Ordering {
-    fn ordering<C: Context>(v: &Schema<C>) -> u8 {
-        use Schema::*;
-
-        match v {
-            Null(_) => 0,
-            Boolean(_) => 1,
-            Integer(_) => 2,
-            Float(_) => 3,
-            String(_) => 4,
-            Bytes(_) => 5,
-            Sequence { .. } => 6,
-            Struct { .. } => 7,
-            Union { .. } => 8,
-        }
-    }
-    Ord::cmp(&ordering(first), &ordering(second))
-}
-
 mod boilerplate {
     use std::fmt;
 
-    use crate::context::Context;
+    use crate::engine::context::Context;
 
     use super::{Field, Schema};
 

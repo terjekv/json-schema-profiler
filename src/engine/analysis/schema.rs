@@ -1,9 +1,12 @@
+// Derived from schema_analysis 0.7.0, MIT OR Apache-2.0.
+// See licenses/schema_analysis for attribution and maintained-source provenance.
+
 use std::marker::PhantomData;
 
 use ordermap::OrderMap;
 use serde::de::{Error, Visitor};
 
-use crate::{Field, Schema, traits::Aggregate};
+use crate::engine::{Field, Schema, traits::Aggregate};
 
 use super::{
     Context,

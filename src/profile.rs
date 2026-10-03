@@ -1,4 +1,4 @@
-use schema_analysis::{Field, InferredSchema, Schema};
+use crate::engine::{Field, InferredSchema, Schema};
 use serde::Serialize;
 
 use crate::{DocumentEvidence, ProfilePath, Scope, statistics::Statistics};

@@ -1,14 +1,16 @@
 # json-schema-profiler
 
 An experimental Rust library that profiles JSON document corpora and proposes
-JSON Schemas with explicit policies. It uses `schema_analysis` 0.7.0 internally
-for structural aggregation, with a counters-only context and a JSON input adapter.
-The dependency currently includes a [local object-presence optimization](https://github.com/terjekv/json-schema-profiler/blob/main/docs/wide-objects.md)
-that removes repeated key scans while preserving upstream aggregation behavior.
+JSON Schemas with explicit policies. Its private structural aggregation core is
+derived from `schema_analysis` 0.7.0, with a counters-only context and a JSON input adapter.
+The bundled core includes an [object-presence optimization](https://github.com/terjekv/json-schema-profiler/blob/main/docs/wide-objects.md)
+and ships inside the Cargo archive. Attribution and maintained-source provenance
+are recorded in the [engine notices](https://github.com/terjekv/json-schema-profiler/blob/main/licenses/schema_analysis/README.md).
 
 **Status: v0.0.1 implementation, unreleased.** Profiling, document evidence,
 subtree selection, per-path policies, candidate generation and bounded replay
 validation are implemented. Rust 1.90 or newer is required.
+Structural discovery, graduated inference policies and owned-record replay are available.
 The crate is generic and has no database, web framework, or runtime dependency.
 
 ## Use
@@ -156,6 +158,71 @@ An override applies to that path and its descendants; its presence option applie
 to the property itself. Overlapping overrides and paths absent from the profile
 are errors. There are at most 128 overrides. The global policy supplies defaults
 elsewhere, and selected-subtree ancestor objects remain open.
+
+## Discovery and strictness
+
+`profile.discover(DiscoveryOptions::default())` reports sparse properties,
+unrelated mixed types, null-only/nullable fields, unobserved selections/items,
+rare kinds and limited document evidence. Findings retain paths and exact counts,
+with the chosen thresholds recorded separately; they do not change a schema.
+Rare kinds use distinct contributing documents, while property presence uses
+applicable object occurrences. Kind contributions can overlap within one document.
+The defaults flag fewer than five contributing documents, kinds present in at most
+5% of contributing documents, and properties present in at most 50% of applicable
+objects. These are review thresholds, not confidence estimates. Options customize
+them and bound findings/report bytes; exceeded output limits return an error.
+
+| Preset | Mixed types | Required properties | Additional properties |
+| --- | --- | --- | --- |
+| `strict()` | Reject unrelated kinds | Present in every applicable object | Deny in fully selected objects |
+| `balanced()` | Preserve observed unions | Present in every applicable object | Allow |
+| `expansive()` | Preserve observed unions | All optional | Allow |
+
+All presets preserve observed nulls and widen integer/fractional mixtures to
+`number`. Each policy axis can be overridden globally or for a selected subtree.
+
+```rust
+use json_schema_profiler::{Frequency, InferencePolicy, Presence, SuggestionOptions};
+
+let policy = InferencePolicy::balanced()
+    .with_presence(Presence::AtLeast(Frequency::percent(95)?));
+let options = SuggestionOptions::new(policy).with_minimum_documents(5)?;
+// Pass options to profile.suggest_with(options).
+# Ok::<(), Box<dyn std::error::Error>>(())
+```
+
+`AtLeast(95%)` explicitly requires properties present in at least 95% of their
+applicable object occurrences. It can reject observed documents with a missing
+property; `RequiredFromFrequency` reports the exact counts and threshold. Use
+replay to measure acceptance before adopting that constraint. No rare observed
+type is silently discarded. `with_minimum_documents` requires sufficient distinct
+contributing records at each reported path, including array item paths; repeated
+items cannot substitute for more documents. Insufficient evidence produces
+`Suggestion::Insufficient`. The default remains one record and preserves the
+existing empty-array behavior.
+
+## Replay records parsed on demand
+
+Use `OwnedDocument` with `evaluate_owned`/`verify_owned` or their `try_` variants
+when an iterator parses each record as it is read. The owned and borrowed APIs
+share the same evaluator, counts, limits, source-error handling and single-record
+lookahead. Each owned record is dropped before the next is requested; the library
+does not accumulate the parsed corpus. Callers still own parsing, reader buffering
+and snapshot consistency. A parser's allocation happens before admission checks.
+
+```rust
+use json_schema_profiler::{CompiledSchema, EvaluationOptions, OwnedDocument, SchemaOptions};
+use serde_json::{Value, json};
+
+let compiled = CompiledSchema::new(&json!({"type":"integer"}), SchemaOptions::default())?;
+let records = ["1", "2"].into_iter()
+    .map(|line| serde_json::from_str::<Value>(line).map(OwnedDocument::new));
+let verified = compiled.try_verify_owned(records, EvaluationOptions::default())?;
+assert_eq!(verified.evaluation().valid(), 2);
+# Ok::<(), Box<dyn std::error::Error>>(())
+```
+
+Run `cargo run --example on_demand` for a complete two-pass JSON Lines example.
 
 ## Semantics and limits
 

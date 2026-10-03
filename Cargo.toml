@@ -14,7 +14,7 @@ categories = ["data-structures", "encoding"]
 
 [dependencies]
 jsonschema = { version = "=0.49.9", default-features = false, features = ["arbitrary-precision"] }
-schema_analysis = { version = "=0.7.0", path = "vendor/schema_analysis" }
+ordermap = { version = "1", features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["arbitrary_precision"] }
 
@@ -22,11 +22,11 @@ serde_json = { version = "1", features = ["arbitrary_precision"] }
 criterion = "0.8.2"
 gungraun = "=0.19.4"
 rstest = "0.26"
-# Published release retained only as a differential-test oracle.
-schema_analysis_original = { package = "schema_analysis", version = "=0.7.0" }
+# Published release retained for differential tests and explicitly named baselines.
+schema_analysis = "=0.7.0"
 
 [workspace]
-exclude = ["vendor/schema_analysis", "consumers/inventory-trial"]
+exclude = ["consumers/inventory-trial"]
 
 [[bench]]
 name = "profiling_criterion"

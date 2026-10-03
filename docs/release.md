@@ -2,13 +2,38 @@
 
 The implementation targets v0.0.1 and remains unreleased with `publish = false`.
 The source repository is [terjekv/json-schema-profiler](https://github.com/terjekv/json-schema-profiler).
-No release tag or registry publication has been created; the docs.rs URL remains
-an intended publication location. The release-readiness audit below was performed
-on 2026-10-01 after [fallible replay](https://github.com/terjekv/json-schema-profiler/pull/2)
-and the [standalone consumer trial](consumer-trial.md). Publication is blocked by
-[engine distribution and package verification](https://github.com/terjekv/json-schema-profiler/issues/9).
+Publication remains intentionally disabled. The 2026-10-03 follow-up resolves
+[issue #9](https://github.com/terjekv/json-schema-profiler/issues/9) in the working
+implementation by packaging a private maintained aggregation core directly in
+`src/engine`. Its object-presence optimization is included in every archive, and
+there is only one development dependency on registry `schema_analysis` 0.7.0.
+`cargo package --allow-dirty --locked --offline` now verifies successfully.
+`--allow-dirty` permits testing the working changes; it does not bypass verification. The
+verified archive contains 81 files, including the private engine, tests, examples,
+benchmark targets, installer scripts, and original license notices. A fresh
+application using only the extracted archive passes accepted, rejected and
+source-failed replay on stable and Rust 1.90. Its normal dependency graph contains
+no `schema_analysis` dependency or repository path override.
 
-## Audit results
+The [engine notices](../licenses/schema_analysis/README.md) describe the derived
+source, removed unused interfaces, maintenance responsibility and original licenses.
+The original release remains a differential oracle; its types never enter the
+public profiler API. No engine fork publication is needed.
+
+Owned-record replay addresses the consumer integration in
+[issue #7](https://github.com/terjekv/json-schema-profiler/issues/7), with a reader
+example and matched parse/replay benchmarks. Benchmark setup for
+[issue #11](https://github.com/terjekv/json-schema-profiler/issues/11) now uses the
+supported v1.3.0 composite action after repository-controlled bounded installation.
+Offline tests cover recovery, reuse, exhausted retries and timeout failure.
+The updated six-target hosted workflow still needs its own run and review before
+publication; local verification does not establish hosted performance acceptance.
+
+## Historical audit results (2026-10-01)
+
+The following records the previous path-dependency packaging failure and the
+original audit evidence. Its package/engine blockers are resolved by the bundled
+core described above; recorded benchmark runs apply to their historical revisions.
 
 | Area | Result |
 | --- | --- |
@@ -28,8 +53,8 @@ and the [standalone consumer trial](consumer-trial.md). Publication is blocked b
 | Names and metadata | Public repository and intended docs.rs metadata are consistent; both crate-name spellings remain absent from the sparse index; no name is reserved |
 | Compatibility | Migration notes cover fallible suggestions, candidate provenance/evidence serialization, and the replay `input_error` stop reason |
 
-This audit does not prepare a release, publish a fork, create a tag or remove
-`publish = false`. Issue #9 owns the remaining package/engine decision. The
+The historical audit did not prepare a release, publish a fork, create a tag or
+remove `publish = false`. Issue #9 tracked the package/engine decision resolved above. The
 [owned-record replay evaluation](https://github.com/terjekv/json-schema-profiler/issues/7)
 is a consumer ergonomics follow-up, not a publication prerequisite.
 
@@ -39,9 +64,9 @@ before measurement; their original logs remain in the run history. No regression
 threshold or code change was used to make that retry pass. Each subsequent PR
 must still pass its own stable/MSRV and benchmark checks.
 
-## Archive verification
+## Archive verification history and reproduction
 
-The audited archive contains 65 files. Cargo includes the root library, both
+The 2026-10-01 audited archive contained 65 files. Cargo includes the root library, both
 examples, all five integration test targets, six benchmark entrypoints and their
 helpers, documentation, repository automation files, the patch and its notices.
 No build output or production fixtures are included. Cargo automatically excludes
@@ -50,7 +75,7 @@ The consumer trial is therefore linked to its repository sources from the
 packaged documentation. Copies of the upstream license texts under `licenses/`
 accompany the patch even though the nested vendor package is excluded.
 
-`cargo package --locked --offline` assembles the archive but then fails:
+Before bundling the core, `cargo package --locked --offline` assembled the archive but failed:
 
 ```text
 error: failed to verify package tarball
@@ -78,7 +103,7 @@ To reproduce the archive probe from a clean checkout:
 
 ```sh
 cargo package --list --locked
-cargo package --no-verify --locked
+cargo package --locked
 audit_dir=$(mktemp -d)
 tar -xzf target/package/json-schema-profiler-0.0.1.crate -C "$audit_dir"
 mkdir -p "$audit_dir/consumer/src"
@@ -100,10 +125,9 @@ cargo +1.90.0 run --manifest-path "$audit_dir/consumer/Cargo.toml" --locked
 cargo tree --manifest-path "$audit_dir/consumer/Cargo.toml" --locked
 ```
 
-`--no-verify` is used only to inspect the known-failing archive, not to waive the
-release gate. Run `cargo package --locked` again after resolving issue #9 and
-require it to pass. Recheck this probe and the full contract/benchmark suite for
-the chosen publishable engine.
+Require package verification to pass. Inspect the extracted `src/engine` files
+and confirm the normal dependency graph has no runtime `schema_analysis` package.
+Recheck the external consumer on stable and the MSRV for future engine updates.
 
 ## Rust and dependencies
 
@@ -112,17 +136,12 @@ and the Gungraun development dependency tree require 1.90). CI tests behavior an
 documentation there and runs all checks/bench targets on stable. `Cargo.lock`
 is kept for reproducible development and CI.
 
-`schema_analysis` 0.7.0 and `jsonschema` 0.49.9 are pinned while their adapter
-contracts are established. Updates require numeric, reference, evidence and
-generated-schema regressions plus benchmark review. Upstream implementation types
+The private engine is derived from `schema_analysis` 0.7.0; `jsonschema` 0.49.9
+remains pinned. Updates require numeric, reference, evidence, generated-schema
+and differential regressions plus benchmark review. Upstream implementation types
 are private; `serde_json::Value` is the intentional integration boundary.
-
-The current `schema_analysis` dependency is a local copy with a focused
-[object-presence patch](wide-objects.md). Before registry publication, adopt a
-released upstream fix or settle an explicitly maintained packaging alternative:
-Cargo removes path dependencies from published manifests, which would otherwise
-restore unpatched 0.7.0. A registry copy of 0.7.0 remains a development-only oracle
-for differential tests. Both local packages keep `publish = false`.
+The normal dependency graph now needs `ordermap` directly, while the published
+engine and its sampling dependencies remain development-only.
 
 The [license inventory](dependency-licenses.md) records locked dependency metadata,
 including development tooling. Retain required notices when distributing those
@@ -155,3 +174,9 @@ For the first published 0.0.1, patch updates should preserve documented behavior
 and report meaning. Incompatible counting, policy or representation changes need
 an explicit versioned migration even while pre-1.0. Counts/schema output are
 deterministic; bounded first-seen witnesses depend on input order and limits.
+
+The discovery/tuning additions introduce `Presence::AtLeast`, `Finding::LowEvidence`
+and `Finding::RequiredFromFrequency`. Update exhaustive matches and report readers.
+Candidate options also retain `minimum_documents`, defaulting to one. Frequency
+policies explicitly may reject the observed corpus; a candidate is still unverified.
+Owned replay methods are additive and share the borrowed methods' semantics.

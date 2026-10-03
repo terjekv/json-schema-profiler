@@ -1,19 +1,18 @@
 # Locked dependency license inventory
 
-Reconciled 2026-10-01 against `cargo metadata --locked`. This includes transitive
+Reconciled 2026-10-03 against `cargo metadata --locked`. This includes transitive
 and development dependencies and target-specific lockfile entries; it is a
 metadata inventory, not a bundled collection of license texts. Entries declaring
 alternative licenses allow a permissive MIT/Apache option; the inventory does
 not select LGPL for an `OR` expression. Unicode, Zlib and other listed notice
 requirements still apply to the corresponding dependencies.
 
-The local `schema_analysis` 0.7.0 runtime copy retains its original
-[MIT](../licenses/schema_analysis/LICENSE-MIT) and
-[Apache-2.0](../licenses/schema_analysis/LICENSE-APACHE) license texts. These copies
-also accompany the source patch in the Cargo archive. Its runtime
-dependencies are unchanged. The registry copy of the same version is also used
-as a development-only differential-test oracle; both copies have the same
-declared license shown below. See the [patch provenance](../licenses/schema_analysis/README.md).
+The private aggregation core derived from `schema_analysis` 0.7.0 retains its
+original [MIT](../licenses/schema_analysis/LICENSE-MIT) and
+[Apache-2.0](../licenses/schema_analysis/LICENSE-APACHE) license texts in the Cargo
+archive. Registry 0.7.0 is a development-only differential oracle and benchmark
+baseline. The maintained core uses Serde and OrderMap; unused sampling/CLI/export
+code is omitted. See [source provenance](../licenses/schema_analysis/README.md).
 
 | Package | Version | Declared license |
 | --- | --- | --- |

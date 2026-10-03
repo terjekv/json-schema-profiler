@@ -57,10 +57,10 @@ fn setup_counts(workload: &str, width: usize) -> Vec<Value> {
 #[bench::width_256("wide", 256)]
 #[bench::width_1024("wide", 1024)]
 #[bench::sparse_256("sparse", 256)]
-fn upstream_counts(corpus: Vec<Value>) -> Vec<Value> {
+fn published_upstream_counts(corpus: Vec<Value>) -> Vec<Value> {
     upstream::run("counts", black_box(&corpus));
     corpus
 }
 
-library_benchmark_group!(name = scales; benchmarks = scaling, upstream_counts);
+library_benchmark_group!(name = scales; benchmarks = scaling, published_upstream_counts);
 main!(config = LibraryBenchmarkConfig::default().tool(Dhat::with_args(["--num-callers=256"])); library_benchmark_groups = scales);

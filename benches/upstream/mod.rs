@@ -12,6 +12,9 @@ use serde::{
 };
 use serde_json::Value;
 
+// Baselines use the unmodified published schema_analysis 0.7.0 release.
+// Names explicitly identify this baseline; historical vendored-engine measurements
+// must not be compared as if they measured the same implementation.
 // Independent, minimal example of the upstream extension API. This baseline intentionally
 // has no path admission, selection, canonical report, or JSON numeric adapter.
 #[derive(Default)]

@@ -6,12 +6,14 @@ records the original target; the README documents the current API.
 
 ## Decision
 
-Keep a separate `json-schema-profiler` library, and provisionally keep
-`schema_analysis` as its internal observation engine. The extension API is useful:
+Keep a separate `json-schema-profiler` library. The current implementation
+bundles the required `schema_analysis` aggregation core as a private module to
+preserve the optimization in distributable Cargo archives. The extension API is useful:
 it handles incremental structural merging, object variants, and recursive arrays
 without requiring us to maintain a second aggregation engine. The initial
 prototype needed no fork or upstream patch; the subsequent
-[wide-object optimization](wide-objects.md) now uses a focused local patch.
+[wide-object optimization](wide-objects.md) uses a focused patch now retained in
+the bundled core.
 
 The separate library is warranted when callers need explanations, counts,
 selected subtrees and policy-controlled schemas. For callers who only want a
@@ -96,7 +98,8 @@ conditional constraints because it discarded those values. The new replay API
 performs those checks. `VerifiedCorpus` describes only a nonempty, fully passing
 supplied replay, including its effective format policy.
 
-Input is incremental borrowed `serde_json::Value`, not a streaming JSON parser.
+Profiling input is incremental borrowed `serde_json::Value`, not a streaming JSON parser.
+Replay also accepts owned records parsed on demand by the consumer.
 Parsing memory belongs to the caller, and selection still examines object keys
 to find the selected ones. We do not retain document scalar values, discover
 cross-field correlations, merge independent profiles, remove documents, or infer
@@ -115,4 +118,4 @@ existing admission index. Keep the upstream correctness/performance proposals
 focused; broader reference support or streaming parsing can be separate future
 work. The repository is public; the crate remains unreleased with publication
 disabled. The [consumer trial](consumer-trial.md) exercises application ownership
-and replay, while the [release audit](release.md) records publication blockers.
+and replay, while the [release audit](release.md) records packaging resolution and publication gates.

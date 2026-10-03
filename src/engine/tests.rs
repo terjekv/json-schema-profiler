@@ -1,7 +1,7 @@
-//! Regression contract for the vendored upstream object visitor.
+//! Regression contract for the bundled upstream object visitor.
 
+use super::{Coalesce, InferredSchema, Schema, context::Context, traits::Aggregate};
 use rstest::rstest;
-use schema_analysis::{Coalesce, InferredSchema, Schema, context::Context, traits::Aggregate};
 use serde::de::DeserializeSeed;
 use serde_json::json;
 
@@ -177,9 +177,8 @@ fn growing_from_empty_preserves_duplicates_across_presence_words(#[case] width: 
 #[case(129)]
 #[case(1025)]
 fn object_aggregation_matches_the_published_upstream_release(#[case] width: usize) {
-    let mut patched: InferredSchema = serde_json::from_str("{}").unwrap();
-    let mut original: schema_analysis_original::InferredSchema =
-        serde_json::from_str("{}").unwrap();
+    let mut patched: InferredSchema<OracleContext> = serde_json::from_str("{}").unwrap();
+    let mut original: schema_analysis::InferredSchema = serde_json::from_str("{}").unwrap();
     for record in 0..6 {
         let mut entries = Vec::new();
         for index in 0..width {
@@ -212,4 +211,32 @@ fn object_aggregation_matches_the_published_upstream_release(#[case] width: usiz
             "aggregation diverged at record {record}"
         );
     }
+}
+
+// Reuse published sampling contexts only in tests to compare every serialized
+// aggregation field; no sampling or upstream implementation type is in the API.
+#[derive(Default, serde::Serialize)]
+#[serde(transparent)]
+struct Oracle<T>(T);
+impl<T: schema_analysis::Coalesce> Coalesce for Oracle<T> {
+    fn coalesce(&mut self, other: Self) {
+        self.0.coalesce(other.0);
+    }
+}
+impl<V: ?Sized, T: schema_analysis::traits::Aggregate<V>> Aggregate<V> for Oracle<T> {
+    fn aggregate(&mut self, value: &V) {
+        self.0.aggregate(value);
+    }
+}
+#[derive(Default, serde::Serialize)]
+struct OracleContext;
+impl Context for OracleContext {
+    type Null = Oracle<schema_analysis::context::NullContext>;
+    type Boolean = Oracle<schema_analysis::context::BooleanContext>;
+    type Integer = Oracle<schema_analysis::context::NumberContext<i128>>;
+    type Float = Oracle<schema_analysis::context::NumberContext<f64>>;
+    type String = Oracle<schema_analysis::context::StringContext>;
+    type Bytes = Oracle<schema_analysis::context::BytesContext>;
+    type Sequence = Oracle<schema_analysis::context::SequenceContext>;
+    type Struct = Oracle<schema_analysis::context::MapStructContext>;
 }

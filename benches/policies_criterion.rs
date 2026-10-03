@@ -2,7 +2,7 @@ use std::{hint::black_box, time::Duration};
 
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
 use json_schema_profiler::{
-    InferencePolicy, Profile, ProfilePath, Profiler, ProfilerOptions, Scope,
+    DiscoveryOptions, InferencePolicy, Profile, ProfilePath, Profiler, ProfilerOptions, Scope,
 };
 use serde_json::Value;
 
@@ -49,6 +49,7 @@ fn policies(c: &mut Criterion) {
         for (name, policy) in [
             ("strict", InferencePolicy::strict()),
             ("expansive", InferencePolicy::expansive()),
+            ("balanced", InferencePolicy::balanced()),
         ] {
             generation.bench_function(BenchmarkId::new(workload, name), |b| {
                 b.iter(|| black_box(report.suggest(policy).unwrap()))
@@ -56,6 +57,17 @@ fn policies(c: &mut Criterion) {
         }
     }
     generation.finish();
+    let mut discovery = c.benchmark_group("discovery");
+    for workload in ["sparse", "mixed", "arrays"] {
+        let report = profile(
+            &support::corpus(workload, 1024, 32),
+            ProfilerOptions::default(),
+        );
+        discovery.bench_function(workload, |b| {
+            b.iter(|| black_box(report.discover(DiscoveryOptions::default()).unwrap()))
+        });
+    }
+    discovery.finish();
 
     let corpus = support::corpus("homogeneous", 1024, 8);
     let source = serde_json::to_vec(&corpus).unwrap();
