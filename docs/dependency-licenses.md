@@ -1,6 +1,6 @@
 # Locked dependency license inventory
 
-Reconciled 2026-10-03 against `cargo metadata --locked`. This includes transitive
+Reconciled 2026-10-25 against `cargo metadata --locked`. This includes transitive
 and development dependencies and target-specific lockfile entries; it is a
 metadata inventory, not a bundled collection of license texts. Entries declaring
 alternative licenses allow a permissive MIT/Apache option; the inventory does

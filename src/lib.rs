@@ -22,6 +22,7 @@ mod adapter;
 mod bounded;
 mod discovery;
 mod engine;
+mod enums;
 mod error;
 mod evidence;
 mod frequency;
@@ -38,6 +39,10 @@ mod validation;
 mod value_limits;
 
 pub use discovery::{Discovery, DiscoveryFinding, DiscoveryOptions};
+pub use enums::{
+    EnumCollection, EnumDetection, EnumDetectionOptions, EnumDetectionStatus, EnumEvidence,
+    EnumValue,
+};
 pub use error::{LimitKind, ProfileError};
 pub use evidence::{DocumentEvidence, DocumentId, EvidenceLimits, Witness};
 pub use frequency::Frequency;

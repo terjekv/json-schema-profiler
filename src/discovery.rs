@@ -1,8 +1,8 @@
 use serde::Serialize;
 
 use crate::{
-    Frequency, InferenceError, JsonKind, OutputLimit, Profile, ProfileError, ProfilePath,
-    bounded::json_size,
+    EnumDetection, EnumDetectionOptions, Frequency, InferenceError, JsonKind, OutputLimit, Profile,
+    ProfileError, ProfilePath, bounded::json_size,
 };
 
 /// Controls observational findings only; it never changes a schema policy.
@@ -13,6 +13,8 @@ pub struct DiscoveryOptions {
     sparse_property: Frequency,
     findings: usize,
     report_bytes: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    enums: Option<EnumDetectionOptions>,
 }
 
 impl Default for DiscoveryOptions {
@@ -23,11 +25,19 @@ impl Default for DiscoveryOptions {
             sparse_property: Frequency::percent(50).expect("valid percentage"),
             findings: 50_000,
             report_bytes: 4_000_000,
+            enums: None,
         }
     }
 }
 
 impl DiscoveryOptions {
+    /// Report string-enum eligibility and failure reasons using previously
+    /// collected evidence. Does not retain values or change a schema policy.
+    pub fn with_enum_detection(mut self, options: EnumDetectionOptions) -> Self {
+        self.enums = Some(options);
+        self
+    }
+
     pub fn minimum_documents(&self) -> u64 {
         self.minimum_documents
     }
@@ -86,6 +96,10 @@ impl DiscoveryOptions {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum DiscoveryFinding {
+    StringEnum {
+        path: ProfilePath,
+        detection: EnumDetection,
+    },
     LowEvidence {
         path: ProfilePath,
         documents: u64,
@@ -124,7 +138,8 @@ pub enum DiscoveryFinding {
 impl DiscoveryFinding {
     pub fn path(&self) -> &ProfilePath {
         match self {
-            Self::LowEvidence { path, .. }
+            Self::StringEnum { path, .. }
+            | Self::LowEvidence { path, .. }
             | Self::Unobserved { path }
             | Self::MixedTypes { path, .. }
             | Self::NullOnly { path, .. }
@@ -193,6 +208,14 @@ impl Profile {
             if field.present() == 0 {
                 push(DiscoveryFinding::Unobserved { path: path.clone() })?;
                 continue;
+            }
+            if let Some(options) = options.enums
+                && field.types().get(JsonKind::String) > 0
+            {
+                push(DiscoveryFinding::StringEnum {
+                    path: path.clone(),
+                    detection: field.detect_enum(options),
+                })?;
             }
             if documents < options.minimum_documents {
                 push(DiscoveryFinding::LowEvidence {

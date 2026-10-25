@@ -10,6 +10,7 @@ state independently of report retention.
 | Profile ingestion | Documents, visited nodes, depth, observed paths and logical path payload | Terminal profiler failure; no completed profile |
 | Profile finalization | Compact serialized profile bytes | Explicit `ReportBytes` error |
 | Witnesses | Entries per path/kind, global entries, global ID payload; IDs at most 256 bytes | Mark truncation; exact counts remain complete |
+| Enum values (opt-in) | Distinct strings per path, global entries and global raw UTF-8 payload | Discard incomplete value sets; structural and document counts continue |
 | Discovery | Findings and compact report bytes | Explicit error; no partial discovery |
 | Suggestion | At most 128 disjoint overrides; findings, schema bytes and suggestion bytes | Explicit error; no partial candidate |
 | Compilation | Schema nodes/depth/bytes/numbers, supported references, expansion depth and regex limits | Compilation/configuration error |
@@ -46,7 +47,10 @@ output, not upstream intermediate allocations. Combinators, uniqueness checks
 and large numbers may still require substantial work within admitted sizes.
 Callers requiring a hard deadline or heap ceiling need external isolation.
 
-No instance scalar samples are retained in profiles or wrapper diagnostics.
+No instance scalar samples are retained in default profiles or wrapper diagnostics.
+Opt-in enum collection retains exact strings and per-value occurrence/document
+counts. These values appear in profile Debug/serialization and generated enum
+constraints; discovery findings contain only counts, thresholds and statuses.
 Compiled schemas and verified evidence do retain the schema, including its
 `const`, `enum`, examples and other literals. IDs and property names may also
 contain sensitive metadata.
@@ -68,3 +72,19 @@ The iterator may itself retain arbitrary storage; this is outside library bounds
 Parsing and allocation happen before `ValueLimits` preflight. The example reader
 uses immutable source bytes as a synthetic snapshot, not a parsing-memory limit.
 Discovery retains structural paths/counts and options, without scalar values or IDs.
+
+Enum collection defaults to 256 distinct strings per path, 4,096 retained entries
+globally and 256 KiB of raw UTF-8 value payload. Duplicate strings at one path
+share storage; the same string at different paths consumes separate entries.
+Empty strings consume entries even though their payload is zero. Collection
+scope intersects the profiling scope and never expands input traversal.
+The path/node limits also bound collection bookkeeping. Existing compact-JSON
+profile, discovery, schema and suggestion budgets still apply, including escaping.
+
+Exceeding a per-path cardinality cap discards that path's set permanently for the
+current profiling run and releases its retained-value budget. Exceeding either
+global budget discards all sets and stops value collection for the run. Exact
+structural counts remain available; incomplete sets expose neither an exact
+cardinality nor a partial list. Shared-budget exhaustion can depend on input order;
+complete sets and their counts have deterministic ordering. No incomplete set
+can qualify for enum generation. Threshold tuning never restores discarded values.

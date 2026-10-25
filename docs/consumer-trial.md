@@ -48,9 +48,30 @@ and remain unconstrained by the generated schema.
 | Changed revision | Rejected both before replay and between verification and application |
 | Another inventory at the same revision number | Rejected using consumer-owned dataset identity |
 
-Fourteen focused cases in [the consumer tests](https://github.com/terjekv/json-schema-profiler/blob/main/consumers/inventory-trial/src/tests.rs)
+Focused cases in [the consumer tests](https://github.com/terjekv/json-schema-profiler/blob/main/consumers/inventory-trial/src/tests.rs)
 cover these contracts, including negative inputs with missing required cores,
 boolean cores, and an unexpected hardware property.
+
+### String-enum review
+
+The walkthrough also performs a separate analysis of `/status`, explicitly
+collecting only its strings with limits of eight values and 128 UTF-8 bytes.
+The same three records contain two `active` statuses and one `retired` status.
+The hardware/interface analysis retains no scalar values, as before.
+
+The default minimum of 100 documents reports insufficient evidence. Lowering
+the minimum to three still exceeds a 50% distinct-value ratio; retuning the same
+profile to 67% makes the exact two-of-three ratio eligible. These deliberately
+small thresholds illustrate review mechanics, not recommended evidence levels
+or statistical confidence. No records are reread and no values are discarded.
+
+An explicit enum policy generates `["active", "retired"]`, which compiles through
+the public validator and accepts all three original records before application.
+A later replay containing `pending` reports two accepted records and one rejected
+record, with an `enum` diagnostic at `/status`. The consumer's revision checks
+still prevent applying an approval to changed data. Tests cover scoped retention,
+the 66%/67% boundary, and accepted/rejected replay. CI runs this walkthrough on
+both stable Rust and the MSRV.
 
 ## Snapshot and ownership boundaries
 

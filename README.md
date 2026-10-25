@@ -224,12 +224,90 @@ assert_eq!(verified.evaluation().valid(), 2);
 
 Run `cargo run --example on_demand` for a complete two-pass JSON Lines example.
 
+## Tunable string enums
+
+Enable bounded string-value collection before profiling, then tune detection
+without rereading the documents. A 3% maximum distinct-value ratio allows at most
+three distinct strings in 100 contributing documents, or 30 in 1,000. Every value
+counts, including values seen only once; no outliers are discarded.
+
+```rust
+use json_schema_profiler::{EnumCollection, EnumDetectionOptions, EnumDetectionStatus,
+    Frequency, InferencePolicy, ProfilePath, Profiler, ProfilerOptions, Scope, Suggestion};
+use serde_json::json;
+
+let status = ProfilePath::root().property("status");
+let collection = EnumCollection::default()
+    .with_scope(Scope::selected([status.clone()])?);
+let mut profiler = Profiler::new(ProfilerOptions::default().with_enum_collection(collection));
+for index in 0..100 {
+    let value = ["new", "active", "closed"][index % 3];
+    profiler.observe(&json!({"status": value}))?;
+}
+let profile = profiler.finish()?;
+let detector = EnumDetectionOptions::new(Frequency::percent(3)?)
+    .with_minimum_documents(100)?
+    .with_max_distinct_values(Some(20))?;
+let field = profile.field(&status).unwrap();
+let detection = field.detect_enum(detector);
+assert_eq!(detection.status(), EnumDetectionStatus::Eligible);
+assert_eq!(detection.distinct_values(), Some(3));
+assert_eq!(detection.documents(), 100);
+// The same evidence can be reconsidered with different thresholds.
+assert_eq!(field.detect_enum(EnumDetectionOptions::new(Frequency::percent(2)?)).status(),
+    EnumDetectionStatus::RatioExceeded);
+
+// Schema constraints are a separate opt-in, globally or through a path policy.
+let policy = InferencePolicy::strict().with_enum_detection(detector);
+let Suggestion::Candidate(candidate) = profile.suggest(policy)? else {
+    panic!("review inference findings");
+};
+assert_eq!(candidate.schema()["properties"]["status"]["enum"],
+    json!(["active", "closed", "new"]));
+# Ok::<(), Box<dyn std::error::Error>>(())
+```
+
+`EnumDetectionOptions::new` requires a whole percentage from 1 through 100 using
+`Frequency`, defaults to 100 contributing documents, and has no absolute value
+ceiling. `with_max_distinct_values(Some(n))` sets that independent ceiling;
+`None` removes it. Eligibility comparisons use integer arithmetic. The report
+exposes exact counts and an approximate `distinct_ratio()` for display.
+
+Only documents contributing a string at that path enter the denominator. Missing,
+null and other kinds are excluded. Each document counts once even when an array
+contains repeated strings; distinct array items can make the ratio exceed one.
+`field.enum_evidence()` exposes the complete, lexicographically sorted values
+with separate occurrence and document counts. Strings are compared exactly,
+without trimming, case folding or Unicode normalization. Numeric enum inference
+is not included.
+
+`DiscoveryOptions::with_enum_detection` adds value-free `StringEnum` findings.
+Each detection explains eligibility, insufficient documents, excessive distinct
+values/ratio, disabled collection, incomplete collection or absent string evidence.
+Ineligibility does not establish that a field is free text. Collecting or discovering
+values alone never constrains a schema. Opt-in generation emits an enum only when
+eligible; otherwise it leaves the string unrestricted and reports the reason.
+Mixed kinds and null retain their existing policies. Enums describe the complete
+observed string set, not the valid set of future values; replay still verifies coverage.
+
+Collection is disabled by default. Enabling it retains potentially sensitive
+strings in profiles, their Debug/serialized representations, and generated enums.
+Defaults are 256 distinct values per path, 4,096 entries globally and 256 KiB of
+raw UTF-8 value payload. `EnumCollection::with_limits` changes these budgets.
+A per-path overflow discards that path's values and marks its enum evidence
+incomplete. A global overflow discards all enum values and marks all collected
+paths incomplete. Structural profiling and exact occurrence/document counts
+continue. Incomplete collections cannot generate enums, even after loosening
+detection thresholds; collect again with adequate budgets. Shared-budget pressure
+can make completeness depend on input order. See the [resource audit](https://github.com/terjekv/json-schema-profiler/blob/main/docs/resources.md).
+
 ## Semantics and limits
 
 - Occurrence counts describe applicable parents; document evidence counts distinct
   input records. Missing and explicit null are separate observations.
-- Profiles retain paths, counts and optional caller IDs, but no scalar values or
-  document copies. Paths and IDs may themselves contain sensitive information.
+- Profiles retain paths, counts and optional caller IDs. Scalar strings are
+  retained only with opt-in enum collection; document copies are never retained.
+  Paths, IDs and collected strings may contain sensitive information.
 - Candidates use Draft 2020-12 structural keywords. They are intended to accept
   the supplied corpus under the chosen policy. Use replay validation to verify
   coverage; suggestion alone is not a verification result.

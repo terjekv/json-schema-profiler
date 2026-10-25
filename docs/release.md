@@ -29,6 +29,26 @@ Offline tests cover recovery, reuse, exhausted retries and timeout failure.
 The updated six-target hosted workflow still needs its own run and review before
 publication; local verification does not establish hosted performance acceptance.
 
+## Pre-release issue review (2026-10-25)
+
+The current archive contains 83 files, including the enum implementation and
+integration tests. Package verification and a fresh consumer of the extracted
+archive pass on stable Rust and Rust 1.90. The consumer passes accepted, rejected
+and source-failed replay; its normal graph contains no `schema_analysis` runtime
+dependency or checkout path. Required upstream license notices remain included.
+All 180 locked dependency entries match the license inventory.
+
+| Issue | Evidence required before closure |
+| --- | --- |
+| [#7: owned replay](https://github.com/terjekv/json-schema-profiler/issues/7) | Owned replay regressions, on-demand reader example and documented borrowed/owned comparison are implemented; merge the verified change |
+| [#9: engine distribution](https://github.com/terjekv/json-schema-profiler/issues/9) | Archive and external-consumer checks pass on stable/MSRV; review hosted benchmark coverage and merge the distribution fix |
+| [#11: benchmark setup](https://github.com/terjekv/json-schema-profiler/issues/11) | Offline recovery, reuse, exhaustion and timeout checks pass; complete and review the six-target hosted comparison before merging |
+
+Close resolved issues through the fixing pull request after its checks pass.
+Keep failed setup attempts and comparison artifacts as evidence. Publication
+remains disabled until the hosted comparison and intentional release preparation
+are complete.
+
 ## Historical audit results (2026-10-01)
 
 The following records the previous path-dependency packaging failure and the
@@ -149,9 +169,9 @@ dependencies. This library uses MIT.
 
 ## Naming and publication
 
-On 2026-10-01 the public Cargo sparse-index entries for `json-schema-profiler`
+On 2026-10-25 the public Cargo sparse-index entries for `json-schema-profiler`
 and `json_schema_profiler` both returned HTTP 404 (`NoSuchKey`); the intended
-docs.rs page also returned 404. Neither spelling appeared indexed;
+docs.rs page returned 404 in the original 2026-10-01 audit. Neither spelling appeared indexed;
 this is not a name reservation or a guarantee of publishing rights. Recheck
 availability when intentionally preparing publication.
 
@@ -180,3 +200,11 @@ and `Finding::RequiredFromFrequency`. Update exhaustive matches and report reade
 Candidate options also retain `minimum_documents`, defaulting to one. Frequency
 policies explicitly may reject the observed corpus; a candidate is still unverified.
 Owned replay methods are additive and share the borrowed methods' semantics.
+
+Opt-in string-enum collection/detection adds `StringEnum` variants to `Finding`
+and `DiscoveryFinding`. Update exhaustive matches and report readers. Collection
+adds `enum_evidence` only to opted-in fields with string observations; enabled
+discovery/inference policies serialize their detector options as `enums`.
+Defaults retain no strings and keep their previous serialized shapes. Explicit
+collection exposes values in profiles and generated schemas, while detection
+reports remain value-free. Review the retention contract before enabling it.

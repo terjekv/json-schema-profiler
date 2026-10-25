@@ -4,6 +4,16 @@
 
 ### Added
 
+- Standalone inventory status-enum walkthrough covering scoped value retention,
+  threshold retuning and replay acceptance/rejection on stable and the MSRV.
+- Opt-in bounded string-value collection and tunable enum detection using exact
+  distinct-value/document ratios, minimum document evidence and an optional
+  cardinality ceiling. Thresholds can be changed after profiling; no outliers
+  are dropped and incomplete collections cannot produce enums.
+- Per-value occurrence/document counts, value-free enum discovery findings and
+  opt-in global/per-path enum generation. Null and other observed kinds retain
+  their existing policies. Default profiling still retains no scalar values;
+  enabling collection exposes strings in profiles and generated schemas.
 - Owned-record evaluation and verification, including fallible on-demand parsing,
   with the same coverage, source-error and resource-limit contracts as borrowed replay.
 - Bounded structural discovery for sparse properties, rare kinds, nullability,
@@ -53,6 +63,10 @@
 
 ### Changed
 
+- **Breaking:** `Finding` and `DiscoveryFinding` add `StringEnum`; update exhaustive
+  matches and serialized report readers. Opt-in profiles include `enum_evidence`,
+  and enabled discovery/inference options include `enums`. Default serialized
+  shapes and preset behavior are unchanged.
 - Bundle the maintained aggregation core inside the library instead of depending
   on an unpublished nested package. Cargo archives retain the object-presence fix;
   the original registry release remains a development-only differential oracle.

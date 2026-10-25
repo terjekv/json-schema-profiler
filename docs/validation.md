@@ -25,6 +25,16 @@ upstream conformance suite was not independently rerun.
 | `unevaluatedProperties`, `unevaluatedItems` | Unevaluated locations after supported applicators |
 | `$defs`, `$ref` | Acyclic local JSON Pointer references, including RFC 6901 escaping and URI percent decoding |
 
+Opt-in string-enum inference emits `enum` for a string-only path, or
+`if: {"type":"string"}` / `then: {"enum":[...]}` alongside the existing type
+and container constraints for a mixed-kind or nullable path. This preserves the
+other kinds and nullability while rejecting unseen strings. Enum evidence must
+be complete and meet the caller's document-count, distinct-ratio and optional
+cardinality thresholds. Independent positive/negative generation tests cover
+observed strings, unseen strings, nulls, missing properties and other kinds.
+Candidates still require replay verification; recognition alone proves nothing
+about future values. Enum schema literals retain the explicitly collected strings.
+
 `$schema`, when present, must identify Draft 2020-12. Unknown required
 `$vocabulary` entries are rejected; optional unknown vocabularies do not enable
 new assertions. Unknown keywords remain annotations under JSON Schema semantics.

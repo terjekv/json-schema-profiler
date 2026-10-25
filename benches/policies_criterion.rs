@@ -2,9 +2,10 @@ use std::{hint::black_box, time::Duration};
 
 use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
 use json_schema_profiler::{
-    DiscoveryOptions, InferencePolicy, Profile, ProfilePath, Profiler, ProfilerOptions, Scope,
+    DiscoveryOptions, EnumCollection, EnumDetectionOptions, Frequency, InferencePolicy, Profile,
+    ProfilePath, Profiler, ProfilerOptions, Scope,
 };
-use serde_json::Value;
+use serde_json::{Value, json};
 
 mod support;
 
@@ -68,6 +69,35 @@ fn policies(c: &mut Criterion) {
         });
     }
     discovery.finish();
+
+    let corpus: Vec<_> = (0..1_000)
+        .map(|index| json!({"status": format!("value-{}", index % 3)}))
+        .collect();
+    let collection = ProfilerOptions::default().with_enum_collection(EnumCollection::default());
+    let report = profile(&corpus, collection.clone());
+    let field = report
+        .field(&ProfilePath::root().property("status"))
+        .unwrap();
+    let detector = EnumDetectionOptions::new(Frequency::percent(3).unwrap())
+        .with_max_distinct_values(Some(20))
+        .unwrap();
+    let mut enums = c.benchmark_group("enums");
+    enums.bench_function("collect_1000", |b| {
+        b.iter(|| black_box(profile(black_box(&corpus), collection.clone())))
+    });
+    enums.bench_function("detect_1000", |b| {
+        b.iter(|| black_box(field.detect_enum(black_box(detector))))
+    });
+    enums.bench_function("generate_1000", |b| {
+        b.iter(|| {
+            black_box(
+                report
+                    .suggest(InferencePolicy::strict().with_enum_detection(detector))
+                    .unwrap(),
+            )
+        })
+    });
+    enums.finish();
 
     let corpus = support::corpus("homogeneous", 1024, 8);
     let source = serde_json::to_vec(&corpus).unwrap();

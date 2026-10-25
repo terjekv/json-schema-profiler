@@ -2,8 +2,9 @@ use std::{error::Error, time::Instant};
 
 use inventory::{ApprovalFailure, Inventory};
 use json_schema_profiler::{
-    EvaluationOptions, EvaluationStatus, EvaluationStop, InferencePolicy, JsonKind, MixedTypes,
-    ProfilePath, Suggestion, SuggestionOptions, VerificationError,
+    EnumDetectionOptions, EnumDetectionStatus, EvaluationOptions, EvaluationStatus, EvaluationStop,
+    Frequency, InferencePolicy, JsonKind, MixedTypes, ProfilePath, Suggestion, SuggestionOptions,
+    VerificationError,
 };
 use serde_json::json;
 
@@ -163,6 +164,71 @@ fn main() -> Result<(), Box<dyn Error>> {
         "Retained encoded outputs: profile={} bytes, candidate={} bytes; parsed snapshot memory belongs to the application.",
         serde_json::to_vec(profile)?.len(),
         serde_json::to_vec(review.candidate())?.len()
+    );
+    enum_trial()?;
+    Ok(())
+}
+
+fn enum_trial() -> Result<(), Box<dyn Error>> {
+    let mut inventory = Inventory::synthetic();
+    let snapshot = inventory.snapshot();
+    let analysis = snapshot.analyze_status()?;
+    let status = analysis
+        .profile()
+        .field(&ProfilePath::root().property("status"))
+        .unwrap();
+    let conservative = EnumDetectionOptions::new(Frequency::percent(50)?);
+    assert_eq!(
+        status.detect_enum(conservative).status(),
+        EnumDetectionStatus::InsufficientDocuments
+    );
+    // Three records are deliberately enough for this tiny walkthrough only.
+    let small_sample = conservative.with_minimum_documents(3)?;
+    assert_eq!(
+        status.detect_enum(small_sample).status(),
+        EnumDetectionStatus::RatioExceeded
+    );
+    let reviewed = EnumDetectionOptions::new(Frequency::percent(67)?)
+        .with_minimum_documents(3)?
+        .with_max_distinct_values(Some(2))?;
+    let detection = status.detect_enum(reviewed);
+    assert_eq!(detection.status(), EnumDetectionStatus::Eligible);
+    assert_eq!(
+        (detection.distinct_values(), detection.documents()),
+        (Some(2), 3)
+    );
+    println!(
+        "Status detection after retuning: {}",
+        serde_json::to_string(&detection)?
+    );
+
+    let review = analysis.propose(SuggestionOptions::new(
+        InferencePolicy::strict().with_enum_detection(reviewed),
+    ))?;
+    assert_eq!(
+        review.candidate().schema()["properties"]["status"]["enum"],
+        json!(["active", "retired"])
+    );
+    let compiled = review.compile()?;
+    let approved = compiled
+        .verify(&snapshot, EvaluationOptions::default())
+        .unwrap();
+    assert_eq!(approved.evidence().evaluation().valid(), 3);
+    inventory.apply(approved).unwrap();
+
+    inventory.replace_row(0, r#"{"status":"pending"}"#);
+    let changed = inventory.snapshot();
+    // Explicitly evaluate changed data; revision checks prevent applying the old approval.
+    let report = compiled
+        .schema()
+        .try_evaluate(changed.replay(), EvaluationOptions::default())
+        .unwrap();
+    assert_eq!((report.valid(), report.invalid()), (2, 1));
+    assert_eq!(report.diagnostics()[0].instance_path(), "/status");
+    assert_eq!(report.diagnostics()[0].keyword(), "enum");
+    println!(
+        "Status enum: original 3/3 accepted; unseen status rejected: {}",
+        serde_json::to_string(&report)?
     );
     Ok(())
 }
