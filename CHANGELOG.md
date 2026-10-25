@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- GitHub OIDC trusted publishing to crates.io for GitHub releases, with package
+  verification on Rust 1.90 and a manual authentication check that publishes nothing.
+
 ## [0.0.1] - 2026-10-25
 
 First release. Rust 1.90 or newer is required.

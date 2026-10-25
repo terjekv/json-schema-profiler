@@ -192,9 +192,50 @@ docs.rs page returned 404 in the original 2026-10-01 audit. Neither spelling app
 this was not a name reservation or a guarantee of publishing rights.
 
 Hosted CI/benchmark review and dated 0.0.1 changelog/README preparation are complete.
-The manifest intentionally permits crates.io publication. For releases, publish
-the verified archive, create a signed tag at its source commit, and verify a fresh
-consumer using the registry dependency rather than a checkout path.
+The manifest intentionally permits crates.io publication. Version 0.0.1 was
+published manually; its registry consumer passes on stable and Rust 1.90, and
+[docs.rs](https://docs.rs/json-schema-profiler/0.0.1/json_schema_profiler/) is live.
+
+## Trusted publishing
+
+[The publishing workflow](../.github/workflows/publish.yml) uses GitHub OIDC and
+the pinned official [crates.io authentication action](https://github.com/rust-lang/crates-io-auth-action).
+No long-lived crates.io token is stored in GitHub. The action obtains a temporary
+token after package verification and revokes it when the job finishes.
+
+The crate's trusted publisher configuration must match these values exactly:
+
+| Setting | Value |
+| --- | --- |
+| Repository owner | `terjekv` |
+| Repository name | `json-schema-profiler` |
+| Workflow filename | `publish.yml` |
+| Environment | `crates-io` |
+
+The GitHub `crates-io` environment permits the `main` branch and `v*` tags.
+Publishing a GitHub release triggers publication from its tag. The workflow
+requires the tag to equal `v` followed by the Cargo package version, verifies the
+archive on Rust 1.90, and publishes with the temporary token. Releases must point
+to reviewed commits whose stable/MSRV CI and applicable benchmarks have passed.
+
+For each subsequent release:
+
+1. Update README, Cargo.toml, Cargo.lock and the dated CHANGELOG together. Complete
+   issue review, required checks and package verification.
+2. Sign the release commit and verify its signature before pushing. Create and
+   verify a signed `v<version>` tag at that commit, then push the tag.
+3. Publish the GitHub release for that tag. Check the publishing workflow result,
+   the registry version, docs.rs and a fresh consumer of the registry dependency.
+
+To test package verification and the trusted-publisher mapping without publishing,
+run this workflow manually from `main`:
+
+```sh
+gh workflow run publish.yml --ref main
+```
+
+Manual runs never execute the publication step. They still exchange the OIDC
+identity for a temporary crates.io token and revoke it at job completion.
 
 ## Compatibility
 
