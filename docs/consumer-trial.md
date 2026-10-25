@@ -48,9 +48,30 @@ and remain unconstrained by the generated schema.
 | Changed revision | Rejected both before replay and between verification and application |
 | Another inventory at the same revision number | Rejected using consumer-owned dataset identity |
 
-Fourteen focused cases in [the consumer tests](https://github.com/terjekv/json-schema-profiler/blob/main/consumers/inventory-trial/src/tests.rs)
+Focused cases in [the consumer tests](https://github.com/terjekv/json-schema-profiler/blob/main/consumers/inventory-trial/src/tests.rs)
 cover these contracts, including negative inputs with missing required cores,
 boolean cores, and an unexpected hardware property.
+
+### String-enum review
+
+The walkthrough also performs a separate analysis of `/status`, explicitly
+collecting only its strings with limits of eight values and 128 UTF-8 bytes.
+The same three records contain two `active` statuses and one `retired` status.
+The hardware/interface analysis retains no scalar values, as before.
+
+The default minimum of 100 documents reports insufficient evidence. Lowering
+the minimum to three still exceeds a 50% distinct-value ratio; retuning the same
+profile to 67% makes the exact two-of-three ratio eligible. These deliberately
+small thresholds illustrate review mechanics, not recommended evidence levels
+or statistical confidence. No records are reread and no values are discarded.
+
+An explicit enum policy generates `["active", "retired"]`, which compiles through
+the public validator and accepts all three original records before application.
+A later replay containing `pending` reports two accepted records and one rejected
+record, with an `enum` diagnostic at `/status`. The consumer's revision checks
+still prevent applying an approval to changed data. Tests cover scoped retention,
+the 66%/67% boundary, and accepted/rejected replay. CI runs this walkthrough on
+both stable Rust and the MSRV.
 
 ## Snapshot and ownership boundaries
 
@@ -94,13 +115,38 @@ Compact serialized profile and candidate outputs were 2,864 and 1,248 bytes.
 These are encoded payload sizes, not live heap measurements. The program reports
 fresh timings and sizes on each run; timings vary by build and machine.
 
-The borrowed API fits an application with stable parsed-record storage. A standard
-iterator cannot parse a new owned value and yield a reference that outlives that
-value. Large on-demand readers would otherwise need caller-owned storage or a
-different replay interface. [Issue #7](https://github.com/terjekv/json-schema-profiler/issues/7)
-records an evaluation of owned-record/callback replay while preserving global
-counts, source errors, limits, and verification semantics. Independently verifying
-each row is not a substitute for complete corpus verification.
+The borrowed API fits an application with stable parsed-record storage. The
+follow-up for [issue #7](https://github.com/terjekv/json-schema-profiler/issues/7)
+adds `OwnedDocument` and owned replay methods for a caller parsing records on demand.
+`examples/on_demand.rs` demonstrates two passes over a synthetic immutable reader,
+without retaining all parsed records. The additive API is justified by Rust's
+borrowing constraints: a standard iterator cannot yield a reference to a temporary
+parsed value. It shares the existing corpus evaluator, preserving global limits,
+indices, lookahead, source failures and verification evidence. Existing borrowed
+callers require no migration.
+
+The `parse_and_replay/{borrowed,owned}/1024` Criterion cases include parsing the
+same synthetic source strings in both variants. Borrowed replay retains 1,024
+parsed values; owned replay holds one at a time. Source storage is outside that
+comparison. Timings are integration costs, not peak-memory guarantees.
 
 No library API change was required for this trial. The root crate remains generic,
 and publication remains disabled pending the separate release audit.
+
+### Owned replay follow-up measurement (2026-10-03)
+
+A local optimized build on the shared Intel Xeon Silver 4216 host, Rust 1.98.0,
+measured the paired 1,024-record parsing/replay cases. Criterion used 30 samples,
+0.3 seconds of warmup and one requested second of measurement. Fixtures were
+prepared before timing; both variants parsed the same strings and verified the
+same schema with default evaluation limits. No other builds or benchmarks were
+started by this task during measurement; unrelated host activity was uncontrolled.
+
+| Replay | Median milliseconds | Parsed records retained by replay input |
+| --- | --- | --- |
+| Borrowed | 0.964 | 1,024 |
+| Owned on demand | 0.832 | 1 |
+
+These are one-run integration measurements, not a throughput or heap guarantee.
+Reproduce with `cargo bench --bench validation_criterion -- parse_and_replay
+--noplot --sample-size 30 --warm-up-time 0.3 --measurement-time 1` (one command).

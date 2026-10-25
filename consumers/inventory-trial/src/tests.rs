@@ -305,3 +305,61 @@ fn resource_stops_cannot_be_applied(
     assert_eq!(report.processed(), processed);
     assert!(inventory.applied_schema().is_none());
 }
+
+#[test]
+fn status_collection_retains_only_explicitly_selected_values() {
+    let snapshot = Inventory::synthetic().snapshot();
+    let analysis = snapshot.analyze_status().unwrap();
+    let profile = analysis.profile();
+    let status = profile
+        .field(&ProfilePath::root().property("status"))
+        .unwrap();
+    let counts: Vec<_> = status
+        .enum_evidence()
+        .unwrap()
+        .values()
+        .iter()
+        .map(|entry| (entry.value(), entry.occurrences(), entry.documents()))
+        .collect();
+    assert_eq!(counts, [("active", 2, 2), ("retired", 1, 1)]);
+    assert!(
+        profile
+            .field(&ProfilePath::root().property("hardware"))
+            .is_none()
+    );
+    let encoded = serde_json::to_string(profile).unwrap();
+    assert!(!encoded.contains("private-a"));
+    assert!(!encoded.contains("192.0.2.1"));
+}
+
+#[rstest]
+#[case(100, 67, EnumDetectionStatus::InsufficientDocuments)]
+#[case(3, 50, EnumDetectionStatus::RatioExceeded)]
+#[case(3, 66, EnumDetectionStatus::RatioExceeded)]
+#[case(3, 67, EnumDetectionStatus::Eligible)]
+fn status_thresholds_can_be_reviewed_without_reprofiling(
+    #[case] minimum: u64,
+    #[case] percent: u8,
+    #[case] expected: EnumDetectionStatus,
+) {
+    let snapshot = Inventory::synthetic().snapshot();
+    let analysis = snapshot.analyze_status().unwrap();
+    let field = analysis
+        .profile()
+        .field(&ProfilePath::root().property("status"))
+        .unwrap();
+    let options = EnumDetectionOptions::new(Frequency::percent(percent).unwrap())
+        .with_minimum_documents(minimum)
+        .unwrap();
+    let detection = field.detect_enum(options);
+    assert_eq!(detection.status(), expected);
+    assert_eq!(
+        (detection.distinct_values(), detection.documents()),
+        (Some(2), 3)
+    );
+}
+
+#[test]
+fn reviewed_status_enum_verifies_observations_and_rejects_unseen_values() {
+    enum_trial().unwrap();
+}

@@ -8,8 +8,9 @@ use serde::{
 use serde_json::{Map, Value, map::Iter};
 
 use crate::{
-    DocumentEvidence, DocumentId, EvidenceLimits, JsonKind, LimitKind, Limits, PathSegment,
-    ProfileError, ProfilePath,
+    DocumentEvidence, DocumentId, EnumCollection, EnumEvidence, EvidenceLimits, JsonKind,
+    LimitKind, Limits, PathSegment, ProfileError, ProfilePath,
+    enums::EnumCollector,
     evidence::{EvidenceBudget, EvidenceRecord},
     numbers::is_integer,
     scope::Selection,
@@ -24,6 +25,12 @@ pub(crate) struct Admission {
     document: u64,
     document_id: Option<DocumentId>,
     evidence_budget: EvidenceBudget,
+    enums: Option<EnumCollector>,
+}
+
+pub(crate) struct CollectedEvidence {
+    pub(crate) documents: DocumentEvidence,
+    pub(crate) enums: Option<Box<EnumEvidence>>,
 }
 
 struct AdmittedPath {
@@ -35,7 +42,11 @@ struct AdmittedPath {
 }
 
 impl Admission {
-    pub(crate) fn new(limits: Limits, evidence: EvidenceLimits) -> Self {
+    pub(crate) fn new(
+        limits: Limits,
+        evidence: EvidenceLimits,
+        enums: Option<EnumCollection>,
+    ) -> Self {
         Self {
             limits,
             paths: vec![AdmittedPath {
@@ -50,6 +61,7 @@ impl Admission {
             document: 0,
             document_id: None,
             evidence_budget: EvidenceBudget::new(evidence),
+            enums: enums.map(EnumCollector::new),
         }
     }
 
@@ -59,10 +71,26 @@ impl Admission {
         self.document_id = id.cloned();
     }
 
-    pub(crate) fn into_evidence(self) -> BTreeMap<ProfilePath, DocumentEvidence> {
+    pub(crate) fn into_evidence(mut self) -> BTreeMap<ProfilePath, CollectedEvidence> {
         self.paths
             .into_iter()
-            .map(|node| (node.path, node.evidence.evidence))
+            .enumerate()
+            .map(|(index, node)| {
+                let enums = if node.evidence.evidence.types().get(JsonKind::String) > 0 {
+                    self.enums
+                        .as_mut()
+                        .and_then(|collector| collector.finish(index, &node.path))
+                } else {
+                    None
+                };
+                (
+                    node.path,
+                    CollectedEvidence {
+                        documents: node.evidence.evidence,
+                        enums,
+                    },
+                )
+            })
             .collect()
     }
 
@@ -205,7 +233,17 @@ impl<'de> Deserializer<'de> for Shape<'de, '_> {
         match self.value {
             Value::Null => visitor.visit_unit(),
             Value::Bool(_) => visitor.visit_bool(false),
-            Value::String(_) => visitor.visit_borrowed_str(""),
+            Value::String(value) => {
+                if let Some(collector) = &mut self.admission.enums {
+                    collector.observe(
+                        self.path,
+                        &self.admission.paths[self.path].path,
+                        self.admission.document,
+                        value,
+                    );
+                }
+                visitor.visit_borrowed_str("")
+            }
             Value::Number(_) => {
                 // Only kind information reaches the counters-only upstream context.
                 // Markers avoid lossy conversion and serde_json's private Number map.

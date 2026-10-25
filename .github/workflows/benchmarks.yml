@@ -3,6 +3,11 @@ name: Benchmarks
 on:
   pull_request:
   workflow_dispatch:
+    inputs:
+      base_sha:
+        description: Base commit SHA for the comparison
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -14,16 +19,37 @@ concurrency:
 
 jobs:
   compare:
-    uses: terjekv/rust-pr-bench/.github/workflows/rust-pr-bench.yml@d0202becabbd115351a879c21f53ab9da6812a44 # v1.3.0
-    with:
-      backend: all
-      auto_discover: true
-      toolchain: stable
-      cargo_args: --locked
-      criterion_statistic: median
-      criterion_cli_args: --noplot --sample-size 40 --warm-up-time 1 --measurement-time 3
-      regression_threshold_pct_gungraun: 3
-      regression_threshold_pct_criterion: 15
-      fail_on_regression: true
-      comment_mode: always
-      cache_namespace: json-schema-profiler-v1
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - name: Install benchmark tools with bounded retries
+        shell: bash
+        run: bash scripts/install-valgrind.sh 2>&1 | tee valgrind-setup.log
+      - name: Compare all six benchmark targets
+        id: bench
+        uses: terjekv/rust-pr-bench@d0202becabbd115351a879c21f53ab9da6812a44 # v1.3.0
+        with:
+          backend: all
+          auto_discover: true
+          toolchain: stable
+          cargo_args: --locked
+          base_sha: ${{ github.event.pull_request.base.sha || inputs.base_sha }}
+          criterion_statistic: median
+          criterion_cli_args: --noplot --sample-size 40 --warm-up-time 1 --measurement-time 3
+          regression_threshold_pct_gungraun: 3
+          regression_threshold_pct_criterion: 15
+          fail_on_regression: true
+          comment_mode: always
+          cache_namespace: json-schema-profiler-v1
+      - name: Preserve setup attempts and comparison report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: benchmark-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            valgrind-setup.log
+            ${{ steps.bench.outputs.report_path }}
+            ${{ steps.bench.outputs.performance_path }}

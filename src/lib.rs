@@ -1,4 +1,4 @@
-//! Experimental, bounded corpus profiling using `schema_analysis` for structural merging.
+//! Experimental, bounded corpus profiling with a private structural aggregation core.
 //!
 //! ```rust
 //! use json_schema_profiler::{InferencePolicy, Profiler, Suggestion};
@@ -20,8 +20,12 @@
 
 mod adapter;
 mod bounded;
+mod discovery;
+mod engine;
+mod enums;
 mod error;
 mod evidence;
+mod frequency;
 mod limits;
 mod numbers;
 mod path;
@@ -34,8 +38,14 @@ mod statistics;
 mod validation;
 mod value_limits;
 
+pub use discovery::{Discovery, DiscoveryFinding, DiscoveryOptions};
+pub use enums::{
+    EnumCollection, EnumDetection, EnumDetectionOptions, EnumDetectionStatus, EnumEvidence,
+    EnumValue,
+};
 pub use error::{LimitKind, ProfileError};
 pub use evidence::{DocumentEvidence, DocumentId, EvidenceLimits, Witness};
+pub use frequency::Frequency;
 pub use limits::{Limits, LimitsBuilder};
 pub use path::{PathSegment, ProfilePath};
 pub use policy::{
@@ -47,7 +57,7 @@ pub use profiler::{Profiler, ProfilerOptions};
 pub use scope::Scope;
 pub use validation::{
     CompiledSchema, Document, Evaluation, EvaluationOptions, EvaluationStatus, EvaluationStop,
-    FormatPolicy, ReplayError, SchemaError, SchemaOptions, VerificationError, VerifiedCorpus,
-    Violation,
+    FormatPolicy, OwnedDocument, ReplayError, SchemaError, SchemaOptions, VerificationError,
+    VerifiedCorpus, Violation,
 };
 pub use value_limits::{ValueLimit, ValueLimits};

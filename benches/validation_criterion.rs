@@ -3,7 +3,7 @@ use std::{hint::black_box, time::Duration};
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use json_schema_profiler::{
     CompiledSchema, Document, DocumentId, EvaluationOptions, EvidenceLimits, InferencePolicy,
-    Profiler, ProfilerOptions, SchemaOptions, Suggestion,
+    OwnedDocument, Profiler, ProfilerOptions, SchemaOptions, Suggestion,
 };
 
 mod validation_support;
@@ -71,6 +71,48 @@ fn benchmarks(c: &mut Criterion) {
         }
     }
     evaluation.finish();
+    let values = validation_support::corpus("structural", 1024);
+    let lines: Vec<_> = values
+        .iter()
+        .map(|value| serde_json::to_string(value).unwrap())
+        .collect();
+    let compiled = CompiledSchema::new(
+        &validation_support::schema("structural"),
+        SchemaOptions::default(),
+    )
+    .unwrap();
+    let mut parsing = c.benchmark_group("parse_and_replay");
+    // Both include parsing identical source strings. The borrowed variant retains
+    // the entire parsed corpus; the owned variant holds one parsed record at a time.
+    parsing.bench_function("borrowed/1024", |b| {
+        b.iter(|| {
+            let records: Vec<serde_json::Value> = black_box(&lines)
+                .iter()
+                .map(|line| serde_json::from_str(line).unwrap())
+                .collect();
+            black_box(
+                compiled
+                    .verify(
+                        records.iter().map(Document::new),
+                        EvaluationOptions::default(),
+                    )
+                    .unwrap(),
+            );
+        })
+    });
+    parsing.bench_function("owned/1024", |b| {
+        b.iter(|| {
+            let records = black_box(&lines)
+                .iter()
+                .map(|line| serde_json::from_str(line).map(OwnedDocument::new));
+            black_box(
+                compiled
+                    .try_verify_owned(records, EvaluationOptions::default())
+                    .unwrap(),
+            );
+        })
+    });
+    parsing.finish();
     let mut evidence = c.benchmark_group("evidence");
     for count in [64, 1024] {
         let corpus = validation_support::corpus("structural", count);

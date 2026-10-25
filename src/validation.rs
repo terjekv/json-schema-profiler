@@ -179,6 +179,51 @@ impl CompiledSchema {
         documents: impl IntoIterator<Item = Result<Document<'a>, E>>,
         options: EvaluationOptions,
     ) -> Result<Evaluation, ReplayError<E>> {
+        self.try_evaluate_records(documents, options)
+    }
+
+    /// Evaluates documents owned by the iterator, dropping each after evaluation.
+    /// Parsing, source buffering and snapshot consistency remain caller-owned.
+    pub fn evaluate_owned(
+        &self,
+        documents: impl IntoIterator<Item = OwnedDocument>,
+        options: EvaluationOptions,
+    ) -> Evaluation {
+        match self.try_evaluate_owned(documents.into_iter().map(Ok::<_, Infallible>), options) {
+            Ok(evaluation) => evaluation,
+            Err(error) => match error.input_error {},
+        }
+    }
+
+    /// Evaluates records parsed on demand, retaining at most the current input record.
+    /// Coverage, limits, lookahead and error semantics match [`Self::try_evaluate`].
+    ///
+    /// # Errors
+    /// Returns the first source error with its incomplete coverage report.
+    ///
+    /// ```rust
+    /// use json_schema_profiler::{CompiledSchema, EvaluationOptions, OwnedDocument, SchemaOptions};
+    /// use serde_json::{Value, json};
+    /// let schema = CompiledSchema::new(&json!({"type": "integer"}), SchemaOptions::default())?;
+    /// let records = ["1", "2", "broken"].into_iter()
+    ///     .map(|line| serde_json::from_str::<Value>(line).map(OwnedDocument::new));
+    /// let error = schema.try_evaluate_owned(records, EvaluationOptions::default()).unwrap_err();
+    /// assert_eq!(error.evaluation().processed(), 2);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn try_evaluate_owned<E>(
+        &self,
+        documents: impl IntoIterator<Item = Result<OwnedDocument, E>>,
+        options: EvaluationOptions,
+    ) -> Result<Evaluation, ReplayError<E>> {
+        self.try_evaluate_records(documents, options)
+    }
+
+    fn try_evaluate_records<D: ReplayDocument, E>(
+        &self,
+        documents: impl IntoIterator<Item = Result<D, E>>,
+        options: EvaluationOptions,
+    ) -> Result<Evaluation, ReplayError<E>> {
         let mut report = Evaluation {
             formats: self.formats,
             ..Evaluation::default()
@@ -196,6 +241,7 @@ impl CompiledSchema {
                     break;
                 }
             };
+            let document = document.document();
             if index == options.documents {
                 report.status = EvaluationStatus::Incomplete(EvaluationStop::DocumentLimit);
                 break;
@@ -332,6 +378,35 @@ impl CompiledSchema {
             .map_err(VerificationError::Evaluation)
     }
 
+    /// Verifies a nonempty complete replay of owned records.
+    ///
+    /// # Errors
+    /// Returns coverage for invalid, empty or incomplete input.
+    pub fn verify_owned(
+        &self,
+        documents: impl IntoIterator<Item = OwnedDocument>,
+        options: EvaluationOptions,
+    ) -> Result<VerifiedCorpus, Evaluation> {
+        self.verify_evaluation(self.evaluate_owned(documents, options))
+    }
+
+    /// Verifies a fallible replay while dropping each owned record before requesting the next.
+    ///
+    /// # Errors
+    /// Distinguishes source failures from invalid, empty or incomplete coverage,
+    /// exactly as [`Self::try_verify`].
+    pub fn try_verify_owned<E>(
+        &self,
+        documents: impl IntoIterator<Item = Result<OwnedDocument, E>>,
+        options: EvaluationOptions,
+    ) -> Result<VerifiedCorpus, VerificationError<E>> {
+        let evaluation = self
+            .try_evaluate_owned(documents, options)
+            .map_err(VerificationError::Input)?;
+        self.verify_evaluation(evaluation)
+            .map_err(VerificationError::Evaluation)
+    }
+
     fn verify_evaluation(&self, evaluation: Evaluation) -> Result<VerifiedCorpus, Evaluation> {
         if evaluation.all_valid() {
             Ok(VerifiedCorpus {
@@ -363,6 +438,50 @@ impl<'a> Document<'a> {
     pub fn with_id(mut self, id: &'a DocumentId) -> Self {
         self.id = Some(id);
         self
+    }
+}
+
+/// One owned replay record. No instance values are copied into evaluation reports.
+/// Construct this inside a fallible iterator to parse one record at a time.
+/// Its Debug representation omits the value and ID.
+pub struct OwnedDocument {
+    value: Value,
+    id: Option<DocumentId>,
+}
+
+impl OwnedDocument {
+    pub fn new(value: Value) -> Self {
+        Self { value, id: None }
+    }
+    pub fn with_id(mut self, id: DocumentId) -> Self {
+        self.id = Some(id);
+        self
+    }
+}
+
+impl fmt::Debug for OwnedDocument {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("OwnedDocument").finish_non_exhaustive()
+    }
+}
+
+trait ReplayDocument {
+    fn document(&self) -> Document<'_>;
+}
+impl ReplayDocument for Document<'_> {
+    fn document(&self) -> Document<'_> {
+        Document {
+            value: self.value,
+            id: self.id,
+        }
+    }
+}
+impl ReplayDocument for OwnedDocument {
+    fn document(&self) -> Document<'_> {
+        Document {
+            value: &self.value,
+            id: self.id.as_ref(),
+        }
     }
 }
 

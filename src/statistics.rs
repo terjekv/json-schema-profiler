@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use schema_analysis::{Coalesce, context::Context, traits::Aggregate};
+use crate::engine::{Coalesce, context::Context, traits::Aggregate};
 
 // Counters cannot overflow: validated admission bounds total visited nodes by u64::MAX.
 #[derive(Clone, Debug, Default)]

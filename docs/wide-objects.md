@@ -1,9 +1,15 @@
 # Wide-object presence tracking
 
+Current distribution (2026-10-03): the optimized aggregation core is bundled in
+`src/engine`, with provenance in `licenses/schema_analysis/README.md`. Registry
+0.7.0 is used only as a development oracle and explicitly named benchmark baseline.
+The measurements and adoption investigation below describe the earlier local
+path-dependency implementation; the object-presence algorithm remains unchanged.
+
 Measured 2026-09-26 against `main` commit
 `63348f59abd8f28994560946091ab93b6525b51b`. The investigation confirms that repeated
 linear key-membership scans in `schema_analysis` 0.7.0 dominate wide-object
-aggregation. A focused local patch removes those scans without changing public
+aggregation. A focused patch removes those scans without changing public
 APIs, occurrence/document counts, policies, or serialized reports.
 
 ## Cause and correction
@@ -105,7 +111,7 @@ table above concerns profiling and policy workloads.
 
 ## Regression coverage and review
 
-`tests/upstream_objects.rs` exercises reordering, missing-field persistence,
+`src/engine/tests.rs` exercises reordering, missing-field persistence,
 existing/new duplicate keys, ordered context inputs, and growth across 64-bit
 word boundaries. Differential cases compare full aggregation output with the
 published registry dependency across sparse, mixed, escaped-key and duplicate-key
@@ -158,16 +164,13 @@ applies at the upstream repository root. Forward-port the regression cases and
 submit a focused upstream change with these measurements when contributing it.
 No upstream issue or PR was posted by this work.
 
-The library currently adopts the correction through a direct path dependency on
-the [vendored runtime source](https://github.com/terjekv/json-schema-profiler/tree/main/vendor/schema_analysis), preserving its
-MIT/Apache licenses and original runtime feature/dependency declarations. The
-registry copy is a development-only differential-test oracle. This does not
-expose upstream implementation types through the profiler API.
+The library now adopts the correction through the private bundled core in
+`src/engine`, preserving the original MIT/Apache notices. Registry 0.7.0 is a
+development-only differential oracle and explicitly named benchmark baseline.
+No upstream implementation type is exposed by the public profiler API.
 
-Once a fixed upstream release is available, replace the path dependency and
-remove the vendor/patch artifacts in a separate change. Re-run the differential
-contract, full stable/MSRV suite, reference-retrieval feature check, and benchmark
-comparison before adopting that version. Until then, publication remains
-disabled: Cargo strips path dependencies when packaging for a registry, so merely
-publishing this manifest would select unpatched upstream 0.7.0. The release audit
-must settle that dependency first.
+When a fixed upstream release becomes available, reevaluate the maintained core
+in a separate change. Re-run the differential contract, full stable/MSRV suite,
+reference-retrieval feature check, archive consumer and benchmark comparison.
+Publication remains intentionally disabled until release preparation, but the
+archive now includes the optimized core and passes package verification.

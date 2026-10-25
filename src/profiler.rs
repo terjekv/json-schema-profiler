@@ -1,9 +1,9 @@
-use schema_analysis::InferredSchema;
+use crate::engine::InferredSchema;
 use serde::{Deserialize, de::DeserializeSeed};
 use serde_json::Value;
 
 use crate::{
-    DocumentId, EvidenceLimits, LimitKind, Limits, Profile, ProfileError, Scope,
+    DocumentId, EnumCollection, EvidenceLimits, LimitKind, Limits, Profile, ProfileError, Scope,
     adapter::{Admission, Document},
     bounded::json_size,
     statistics::Statistics,
@@ -14,6 +14,7 @@ pub struct ProfilerOptions {
     scope: Scope,
     limits: Limits,
     evidence: EvidenceLimits,
+    enums: Option<EnumCollection>,
 }
 
 impl ProfilerOptions {
@@ -29,9 +30,17 @@ impl ProfilerOptions {
         self.evidence = limits;
         self
     }
+
+    /// Opt in to bounded string-value retention. Profiles may then expose sensitive
+    /// values through enum evidence, Debug and serialization. Disabled by default.
+    pub fn with_enum_collection(mut self, collection: EnumCollection) -> Self {
+        self.enums = Some(collection);
+        self
+    }
 }
 
-/// Incrementally borrows documents; retains structure and counts, not scalar values.
+/// Incrementally borrows documents; retains structure and counts. String values
+/// are retained only when enum collection is explicitly enabled.
 /// Any failed observation makes this profiler terminally incomplete.
 pub struct Profiler {
     scope: Scope,
@@ -55,7 +64,7 @@ impl Profiler {
     pub fn new(options: ProfilerOptions) -> Self {
         Self {
             scope: options.scope,
-            admission: Admission::new(options.limits, options.evidence),
+            admission: Admission::new(options.limits, options.evidence, options.enums),
             state: State::Active(None),
             documents: 0,
         }

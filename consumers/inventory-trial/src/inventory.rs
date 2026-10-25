@@ -1,9 +1,9 @@
 use std::{error::Error, io, num::NonZeroU64, rc::Rc};
 
 use json_schema_profiler::{
-    CompiledSchema, Document, DocumentId, EvaluationOptions, EvidenceLimits, Limits, Profile,
-    ProfilePath, Profiler, ProfilerOptions, SchemaCandidate, SchemaError, SchemaOptions, Scope,
-    Suggestion, SuggestionOptions, VerificationError, VerifiedCorpus,
+    CompiledSchema, Document, DocumentId, EnumCollection, EvaluationOptions, EvidenceLimits,
+    Limits, Profile, ProfilePath, Profiler, ProfilerOptions, SchemaCandidate, SchemaError,
+    SchemaOptions, Scope, Suggestion, SuggestionOptions, VerificationError, VerifiedCorpus,
 };
 use serde_json::Value;
 
@@ -30,9 +30,9 @@ pub struct Inventory {
 impl Inventory {
     pub fn synthetic() -> Self {
         let rows = [
-            ("node-a", r#"{"hardware":{"cores":4,"owner":null},"interfaces":[{"address":"192.0.2.1"},{"address":"192.0.2.2"}],"ignored":"private-a"}"#),
-            ("node-b", r#"{"hardware":{"cores":"8"},"interfaces":[],"ignored":"private-b"}"#),
-            ("node-c", r#"{"hardware":{"cores":16,"owner":"ops"},"interfaces":[{"address":"192.0.2.3"}],"ignored":"private-c"}"#),
+            ("node-a", r#"{"status":"active","hardware":{"cores":4,"owner":null},"interfaces":[{"address":"192.0.2.1"},{"address":"192.0.2.2"}],"ignored":"private-a"}"#),
+            ("node-b", r#"{"status":"active","hardware":{"cores":"8"},"interfaces":[],"ignored":"private-b"}"#),
+            ("node-c", r#"{"status":"retired","hardware":{"cores":16,"owner":"ops"},"interfaces":[{"address":"192.0.2.3"}],"ignored":"private-c"}"#),
         ]
         .into_iter()
         .map(|(id, json)| (DocumentId::new(id).unwrap(), json.to_owned()))
@@ -125,7 +125,25 @@ impl Snapshot {
     }
 
     pub fn analyze(&self) -> Result<Analysis, Box<dyn Error>> {
-        let options = ProfilerOptions::default()
+        self.analyze_with_options(Self::profile_options()?)
+    }
+
+    // This separate review explicitly retains only the selected status strings.
+    pub fn analyze_status(&self) -> Result<Analysis, Box<dyn Error>> {
+        let scope = Scope::selected([ProfilePath::root().property("status")])?;
+        self.analyze_with_options(
+            Self::profile_options()?
+                .with_scope(scope.clone())
+                .with_enum_collection(
+                    EnumCollection::default()
+                        .with_scope(scope)
+                        .with_limits(8, 8, 128)?,
+                ),
+        )
+    }
+
+    fn profile_options() -> Result<ProfilerOptions, Box<dyn Error>> {
+        Ok(ProfilerOptions::default()
             .with_scope(Scope::selected([
                 ProfilePath::root().property("hardware"),
                 ProfilePath::root().property("interfaces"),
@@ -140,7 +158,10 @@ impl Snapshot {
                     .report_bytes(50_000)
                     .build()?,
             )
-            .with_evidence_limits(EvidenceLimits::new(1, 32, 512));
+            .with_evidence_limits(EvidenceLimits::new(1, 32, 512)))
+    }
+
+    fn analyze_with_options(&self, options: ProfilerOptions) -> Result<Analysis, Box<dyn Error>> {
         let mut profiler = Profiler::new(options);
         for record in &self.records {
             // Abort on source failure, without finalizing the partial profiler.

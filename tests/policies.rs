@@ -1,7 +1,7 @@
 use json_schema_profiler::{
-    CompiledSchema, Document, EvaluationOptions, InferenceError, InferencePolicy, Nullability,
-    OutputLimit, OutputLimits, Presence, ProfilePath, Profiler, SchemaOptions, Suggestion,
-    SuggestionOptions,
+    CompiledSchema, Document, EvaluationOptions, Finding, Frequency, InferenceError,
+    InferencePolicy, Nullability, OutputLimit, OutputLimits, Presence, ProfilePath, Profiler,
+    SchemaOptions, Suggestion, SuggestionOptions,
 };
 use rstest::rstest;
 use serde_json::{Value, json};
@@ -12,6 +12,130 @@ fn report(documents: &[Value]) -> json_schema_profiler::Profile {
         profiler.observe(value).unwrap();
     }
     profiler.finish().unwrap()
+}
+
+#[rstest]
+#[case(66, true)]
+#[case(67, false)]
+#[case(100, false)]
+fn presence_threshold_uses_exact_applicable_parent_frequency(
+    #[case] percent: u8,
+    #[case] required: bool,
+) {
+    let values = [
+        json!({"a":{"x":1}}),
+        json!({"a":{"x":2}}),
+        json!({"a":{}}),
+        json!({}),
+    ];
+    let policy = InferencePolicy::balanced()
+        .with_presence(Presence::AtLeast(Frequency::percent(percent).unwrap()));
+    let Suggestion::Candidate(candidate) = report(&values).suggest(policy).unwrap() else {
+        panic!()
+    };
+    let validator = jsonschema::draft202012::new(candidate.schema()).unwrap();
+    assert!(validator.is_valid(&json!({"a":{"x":3}})));
+    assert!(!validator.is_valid(&json!({"a":{"x":true}})));
+    assert_eq!(validator.is_valid(&json!({"a":{}})), !required);
+    assert_eq!(
+        candidate.findings().iter().any(|f| matches!(f,
+        Finding::RequiredFromFrequency { path, present: 2, applicable_parents: 3, .. }
+            if path == &ProfilePath::root().property("a").property("x"))),
+        required
+    );
+}
+
+#[test]
+fn frequency_based_requirement_does_not_claim_verified_corpus_coverage() {
+    let values = [json!({"x":1}), json!({})];
+    let Suggestion::Candidate(candidate) = report(&values)
+        .suggest(
+            InferencePolicy::strict()
+                .with_presence(Presence::AtLeast(Frequency::percent(50).unwrap())),
+        )
+        .unwrap()
+    else {
+        panic!()
+    };
+    let evaluation = candidate
+        .compile(SchemaOptions::default())
+        .unwrap()
+        .verify(
+            values.iter().map(Document::new),
+            EvaluationOptions::default(),
+        )
+        .unwrap_err();
+    assert_eq!(evaluation.invalid(), 1);
+}
+
+#[test]
+fn local_frequency_override_preserves_other_property_policies() {
+    let values = [json!({"x":1,"y":1}), json!({})];
+    let options = SuggestionOptions::new(InferencePolicy::expansive())
+        .with_path_policy(
+            ProfilePath::root().property("x"),
+            InferencePolicy::balanced()
+                .with_presence(Presence::AtLeast(Frequency::percent(50).unwrap())),
+        )
+        .unwrap();
+    let Suggestion::Candidate(candidate) = report(&values).suggest_with(options).unwrap() else {
+        panic!()
+    };
+    assert_eq!(candidate.schema()["required"], json!(["x"]));
+}
+
+#[test]
+fn balanced_policy_allows_unions_and_extra_keys_but_requires_consistent_fields() {
+    let Suggestion::Candidate(candidate) = report(&[json!({"x":1}), json!({"x":"a"})])
+        .suggest(InferencePolicy::balanced())
+        .unwrap()
+    else {
+        panic!()
+    };
+    let validator = jsonschema::draft202012::new(candidate.schema()).unwrap();
+    assert!(validator.is_valid(&json!({"x":"b","new":true})));
+    assert!(!validator.is_valid(&json!({})));
+    assert!(!validator.is_valid(&json!({"x":false})));
+}
+
+#[test]
+fn minimum_evidence_counts_documents_not_repeated_array_items() {
+    let options = SuggestionOptions::new(InferencePolicy::balanced())
+        .with_minimum_documents(2)
+        .unwrap();
+    let Suggestion::Insufficient(findings) = report(&[json!([1, 1, 1]), json!([])])
+        .suggest_with(options)
+        .unwrap()
+    else {
+        panic!()
+    };
+    assert!(findings.contains(&Finding::LowEvidence {
+        path: ProfilePath::root().each_item(),
+        documents: 1,
+        minimum: 2,
+    }));
+}
+
+#[test]
+fn minimum_evidence_accepts_enough_distinct_records() {
+    let options = SuggestionOptions::new(InferencePolicy::balanced())
+        .with_minimum_documents(2)
+        .unwrap();
+    assert!(matches!(
+        report(&[json!([1]), json!([2])])
+            .suggest_with(options)
+            .unwrap(),
+        Suggestion::Candidate(_)
+    ));
+}
+
+#[test]
+fn zero_minimum_evidence_is_rejected() {
+    assert!(
+        SuggestionOptions::new(InferencePolicy::strict())
+            .with_minimum_documents(0)
+            .is_err()
+    );
 }
 
 #[rstest]

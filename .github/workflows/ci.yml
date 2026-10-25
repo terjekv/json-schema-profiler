@@ -19,6 +19,8 @@ jobs:
       - run: cargo test --lib --tests --locked
       - run: cargo test --doc --locked
       - run: cargo test --example package_workflow --locked
+      - run: cargo test --example on_demand --locked
+      - run: cargo package --locked
       - run: RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --locked
       - run: cargo test --test validation --locked --features jsonschema/resolve-file
       - run: cargo test --manifest-path consumers/inventory-trial/Cargo.toml --locked
@@ -35,8 +37,8 @@ jobs:
           node-version: "24"
       - name: Install benchmark test runner
         run: |
-          sudo apt-get update
-          sudo apt-get install --yes valgrind
+          bash scripts/test-install-valgrind.sh
+          bash scripts/install-valgrind.sh
           cargo install gungraun-runner --version 0.19.4 --locked
       - run: cargo fmt --all -- --check
       - run: cargo clippy --all-targets --locked -- -D warnings
@@ -48,5 +50,6 @@ jobs:
           cargo clippy --manifest-path consumers/inventory-trial/Cargo.toml --all-targets --locked -- -D warnings
           cargo test --manifest-path consumers/inventory-trial/Cargo.toml --locked
           cargo run --manifest-path consumers/inventory-trial/Cargo.toml --locked
+      - run: cargo package --locked
       - run: RUSTDOCFLAGS="-D warnings" cargo doc --no-deps --locked
       - run: npx --yes markdownlint-cli2@0.23.3 --config .markdownlint.json "**/*.md" "!target"

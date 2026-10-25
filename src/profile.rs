@@ -1,7 +1,10 @@
-use schema_analysis::{Field, InferredSchema, Schema};
+use crate::engine::{Field, InferredSchema, Schema};
 use serde::Serialize;
 
-use crate::{DocumentEvidence, ProfilePath, Scope, statistics::Statistics};
+use crate::{
+    DocumentEvidence, EnumEvidence, ProfilePath, Scope, adapter::CollectedEvidence,
+    statistics::Statistics,
+};
 
 /// Disjoint observed kinds: FractionalNumber excludes mathematically integral values.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize)]
@@ -103,6 +106,8 @@ pub struct FieldProfile {
     present: u64,
     types: TypeCounts,
     evidence: DocumentEvidence,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    enum_evidence: Option<Box<EnumEvidence>>,
     #[serde(skip)]
     pub(crate) properties: Vec<String>,
 }
@@ -126,9 +131,16 @@ impl FieldProfile {
     pub fn evidence(&self) -> &DocumentEvidence {
         &self.evidence
     }
+
+    /// Opt-in string-value evidence, absent when disabled, outside its scope or
+    /// when no strings were observed. Incomplete evidence contains no partial values.
+    pub fn enum_evidence(&self) -> Option<&EnumEvidence> {
+        self.enum_evidence.as_deref()
+    }
 }
 
-/// A completed profile; scalar values and upstream representation are not retained.
+/// A completed profile. Scalar values are retained only through opt-in enum
+/// collection; the upstream representation is not retained.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct Profile {
     documents: u64,
@@ -157,7 +169,7 @@ impl Profile {
         inferred: InferredSchema<Statistics>,
         documents: u64,
         scope: Scope,
-        mut evidence: BTreeMap<ProfilePath, DocumentEvidence>,
+        mut evidence: BTreeMap<ProfilePath, CollectedEvidence>,
     ) -> Self {
         let Schema::Sequence { field, .. } = inferred.schema else {
             unreachable!("adapter always wraps documents in a list")
@@ -172,7 +184,10 @@ impl Profile {
         );
         fields.sort_by(|a, b| a.path.cmp(&b.path));
         for field in &mut fields {
-            field.evidence = evidence.remove(&field.path).unwrap_or_default();
+            if let Some(collected) = evidence.remove(&field.path) {
+                field.evidence = collected.documents;
+                field.enum_evidence = collected.enums;
+            }
         }
         Self {
             documents,
@@ -195,6 +210,7 @@ fn collect_field(
         present,
         types: TypeCounts::default(),
         evidence: DocumentEvidence::default(),
+        enum_evidence: None,
         properties: Vec::new(),
     };
     if let Some(schema) = field.schema {

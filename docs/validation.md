@@ -25,6 +25,16 @@ upstream conformance suite was not independently rerun.
 | `unevaluatedProperties`, `unevaluatedItems` | Unevaluated locations after supported applicators |
 | `$defs`, `$ref` | Acyclic local JSON Pointer references, including RFC 6901 escaping and URI percent decoding |
 
+Opt-in string-enum inference emits `enum` for a string-only path, or
+`if: {"type":"string"}` / `then: {"enum":[...]}` alongside the existing type
+and container constraints for a mixed-kind or nullable path. This preserves the
+other kinds and nullability while rejecting unseen strings. Enum evidence must
+be complete and meet the caller's document-count, distinct-ratio and optional
+cardinality thresholds. Independent positive/negative generation tests cover
+observed strings, unseen strings, nulls, missing properties and other kinds.
+Candidates still require replay verification; recognition alone proves nothing
+about future values. Enum schema literals retain the explicitly collected strings.
+
 `$schema`, when present, must identify Draft 2020-12. Unknown required
 `$vocabulary` entries are rejected; optional unknown vocabularies do not enable
 new assertions. Unknown keywords remain annotations under JSON Schema semantics.
@@ -134,3 +144,18 @@ Pointers and IDs can contain sensitive names. Read the
 [resource audit](resources.md) for retained-output and temporary-memory boundaries
 and the [upstream API documentation](https://docs.rs/jsonschema/0.49.9/jsonschema/)
 for the underlying validator.
+
+### Owned replay
+
+`evaluate_owned`, `verify_owned`, `try_evaluate_owned` and `try_verify_owned` take
+`OwnedDocument` records from a consumer-owned iterator. The fallible variants
+accept `Result<OwnedDocument, E>`. Each record owns its JSON value and optional ID,
+is evaluated through the same implementation as borrowed replay, then is dropped
+before requesting the next record. No entire parsed corpus is accumulated.
+All source-error, limit-lookahead, exact-count, diagnostic, format-policy and
+verification contracts above also apply. Reports do not retain owned input values.
+
+`examples/on_demand.rs` demonstrates a caller-owned JSON Lines reader. Reader and
+parser memory, source errors and snapshot identity remain consumer responsibilities.
+Paired positive/negative tests compare owned and borrowed reports and exercise
+parsing errors, invalid data, zero/exact document limits and value admission.

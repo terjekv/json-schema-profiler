@@ -3,7 +3,10 @@ use std::{error::Error, fmt};
 use serde::Serialize;
 use serde_json::{Map, Value, json};
 
-use crate::{JsonKind, Profile, ProfileError, ProfilePath, Scope, bounded::json_size};
+use crate::{
+    EnumDetection, EnumDetectionOptions, EnumDetectionStatus, Frequency, JsonKind, Profile,
+    ProfileError, ProfilePath, Scope, bounded::json_size,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -24,6 +27,9 @@ pub enum MixedTypes {
 pub enum Presence {
     Observed,
     Optional,
+    /// Require a property present in at least this fraction of applicable objects.
+    /// Below 100%, this deliberately rejects observed objects missing the property.
+    AtLeast(Frequency),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
@@ -33,22 +39,31 @@ pub enum ExtraProperties {
     Deny,
 }
 
-/// Independent policy axes. Both presets preserve observed nulls and widen numeric kinds.
+/// Independent policy axes. All presets preserve observed nulls and widen numeric kinds.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 pub struct InferencePolicy {
     mixed_types: MixedTypes,
     presence: Presence,
     extra_properties: ExtraProperties,
     nullability: Nullability,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    enums: Option<EnumDetectionOptions>,
 }
 
 impl InferencePolicy {
+    /// Allows mixed types and new properties, requiring consistently present fields.
+    pub fn balanced() -> Self {
+        Self::strict()
+            .with_mixed_types(MixedTypes::Union)
+            .with_extra_properties(ExtraProperties::Allow)
+    }
     pub fn strict() -> Self {
         Self {
             mixed_types: MixedTypes::Reject,
             presence: Presence::Observed,
             extra_properties: ExtraProperties::Deny,
             nullability: Nullability::Allow,
+            enums: None,
         }
     }
     pub fn expansive() -> Self {
@@ -57,6 +72,7 @@ impl InferencePolicy {
             presence: Presence::Optional,
             extra_properties: ExtraProperties::Allow,
             nullability: Nullability::Allow,
+            enums: None,
         }
     }
     pub fn with_mixed_types(mut self, value: MixedTypes) -> Self {
@@ -73,6 +89,14 @@ impl InferencePolicy {
     }
     pub fn with_nullability(mut self, value: Nullability) -> Self {
         self.nullability = value;
+        self
+    }
+
+    /// Emit enum constraints for eligible string values, with a finding explaining
+    /// each detection outcome. Requires opt-in value collection during profiling.
+    /// Other observed kinds and nullability retain their existing policies.
+    pub fn with_enum_detection(mut self, options: EnumDetectionOptions) -> Self {
+        self.enums = Some(options);
         self
     }
 }
@@ -126,6 +150,7 @@ pub struct SuggestionOptions {
     policy: InferencePolicy,
     overrides: Vec<PathPolicy>,
     limits: OutputLimits,
+    minimum_documents: u64,
 }
 
 impl SuggestionOptions {
@@ -134,11 +159,27 @@ impl SuggestionOptions {
             policy,
             overrides: Vec::new(),
             limits: OutputLimits::default(),
+            minimum_documents: 1,
         }
     }
     pub fn with_output_limits(mut self, limits: OutputLimits) -> Self {
         self.limits = limits;
         self
+    }
+    /// Require at least this many distinct contributing records at every reported path.
+    /// Repeated array items count once per document. A value of one preserves the
+    /// default empty-array behavior; higher thresholds also require item evidence.
+    ///
+    /// # Errors
+    /// Rejects zero; the default is one contributing record.
+    pub fn with_minimum_documents(mut self, minimum: u64) -> Result<Self, ProfileError> {
+        if minimum == 0 {
+            return Err(ProfileError::InvalidOptions(
+                "minimum documents must be nonzero".into(),
+            ));
+        }
+        self.minimum_documents = minimum;
+        Ok(self)
     }
     pub fn with_path_policy(
         mut self,
@@ -211,6 +252,21 @@ impl Findings {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum Finding {
+    StringEnum {
+        path: ProfilePath,
+        detection: EnumDetection,
+    },
+    LowEvidence {
+        path: ProfilePath,
+        documents: u64,
+        minimum: u64,
+    },
+    RequiredFromFrequency {
+        path: ProfilePath,
+        present: u64,
+        applicable_parents: u64,
+        threshold: Frequency,
+    },
     MixedTypes {
         path: ProfilePath,
         types: Vec<JsonKind>,
@@ -305,6 +361,17 @@ impl Profile {
                 findings.push(Finding::UnobservedSelection { path: path.clone() })?;
             }
         }
+        if options.minimum_documents > 1 {
+            for field in self.fields() {
+                if field.evidence().documents() < options.minimum_documents {
+                    findings.push(Finding::LowEvidence {
+                        path: field.path().clone(),
+                        documents: field.evidence().documents(),
+                        minimum: options.minimum_documents,
+                    })?;
+                }
+            }
+        }
         if !findings.values.is_empty() {
             return Ok(Suggestion::Insufficient(findings.values));
         }
@@ -392,14 +459,56 @@ impl Profile {
                 json!(types)
             },
         );
+        if let Some(options) = policy.enums
+            && field.types().get(JsonKind::String) > 0
+        {
+            let detection = field.detect_enum(options);
+            if detection.status() == EnumDetectionStatus::Eligible {
+                let values: Vec<_> = field
+                    .enum_evidence()
+                    .expect("eligible enums have complete evidence")
+                    .values()
+                    .iter()
+                    .map(|entry| entry.value())
+                    .collect();
+                if types.len() == 1 {
+                    schema.insert("enum".into(), json!(values));
+                } else {
+                    schema.insert("if".into(), json!({"type": "string"}));
+                    schema.insert("then".into(), json!({"enum": values}));
+                }
+            }
+            findings.push(Finding::StringEnum {
+                path: path.clone(),
+                detection,
+            })?;
+        }
         if field.types().get(JsonKind::Object) > 0 {
             let mut properties = Map::new();
             let mut required = Vec::new();
             for name in &field.properties {
                 let child_path = path.clone().property(name);
                 let child = self.field(&child_path).expect("property exists");
-                if options.at(&child_path).presence == Presence::Observed && child.missing() == 0 {
+                let presence = options.at(&child_path).presence;
+                let is_required = match presence {
+                    Presence::Observed => child.missing() == 0,
+                    Presence::Optional => false,
+                    Presence::AtLeast(threshold) => {
+                        threshold.reached(child.present(), child.applicable_parents())
+                    }
+                };
+                if is_required {
                     required.push(name.clone());
+                    if let Presence::AtLeast(threshold) = presence
+                        && child.missing() > 0
+                    {
+                        findings.push(Finding::RequiredFromFrequency {
+                            path: child_path.clone(),
+                            present: child.present(),
+                            applicable_parents: child.applicable_parents(),
+                            threshold,
+                        })?;
+                    }
                 } else {
                     findings.push(Finding::OptionalProperty {
                         path: child_path.clone(),

@@ -4,6 +4,26 @@
 
 ### Added
 
+- Standalone inventory status-enum walkthrough covering scoped value retention,
+  threshold retuning and replay acceptance/rejection on stable and the MSRV.
+- Opt-in bounded string-value collection and tunable enum detection using exact
+  distinct-value/document ratios, minimum document evidence and an optional
+  cardinality ceiling. Thresholds can be changed after profiling; no outliers
+  are dropped and incomplete collections cannot produce enums.
+- Per-value occurrence/document counts, value-free enum discovery findings and
+  opt-in global/per-path enum generation. Null and other observed kinds retain
+  their existing policies. Default profiling still retains no scalar values;
+  enabling collection exposes strings in profiles and generated schemas.
+- Owned-record evaluation and verification, including fallible on-demand parsing,
+  with the same coverage, source-error and resource-limit contracts as borrowed replay.
+- Bounded structural discovery for sparse properties, rare kinds, nullability,
+  mixed types, unobserved paths and low document evidence, with explicit thresholds.
+- Balanced inference preset, exact required-property frequency thresholds and
+  minimum contributing-document requirements. Frequency-based requirements expose
+  their counts and can reject observed documents; replay remains required to prove coverage.
+- Offline regression tests for benchmark-tool installation retries and a complete
+  JSON Lines replay example; parsing/replay and discovery benchmarks.
+
 - Release-readiness audit and a packaged-consumer workflow example covering
   accepted, rejected, and source-failed replay, with compiling API/verification
   boundary documentation and explicit publication blockers.
@@ -42,6 +62,23 @@
   dependency-feature-unification test for disabled file retrieval.
 
 ### Changed
+
+- **Breaking:** `Finding` and `DiscoveryFinding` add `StringEnum`; update exhaustive
+  matches and serialized report readers. Opt-in profiles include `enum_evidence`,
+  and enabled discovery/inference options include `enums`. Default serialized
+  shapes and preset behavior are unchanged.
+- Bundle the maintained aggregation core inside the library instead of depending
+  on an unpublished nested package. Cargo archives retain the object-presence fix;
+  the original registry release remains a development-only differential oracle.
+- Use the pinned benchmark composite action after a bounded, retrying Valgrind
+  installation. Preserve setup attempts and retain 3% instruction/15% timing gates.
+- Raw upstream benchmark baselines now explicitly use the published 0.7.0 release
+  and have new `published_` identities. Previous raw cases used the local patch;
+  treat these as different baselines, not comparable performance regressions.
+- **Breaking:** `Presence` adds `AtLeast(Frequency)`; `Finding` adds `LowEvidence`
+  and `RequiredFromFrequency`. Update exhaustive matches and serialized-report readers.
+  Candidate `options` adds `minimum_documents` (default 1). Existing presets and
+  borrowed replay signatures retain their behavior.
 
 - Refresh both development lockfiles from yanked `yoke-derive` 0.8.3 to 0.8.4;
   Rust 1.90 remains the supported minimum. Public APIs are unchanged.

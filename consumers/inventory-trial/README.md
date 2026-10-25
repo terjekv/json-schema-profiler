@@ -3,6 +3,8 @@
 A standalone synthetic application exercising `json-schema-profiler` through its
 public API. It owns records, snapshot identity/revisions, and schema application.
 It is intentionally unpublished and separate from the library workspace.
+The walkthrough includes an opt-in status enum review: bounded collection,
+threshold retuning without rereading, and accepted/rejected replay.
 
 Run from the repository root:
 

@@ -1,8 +1,11 @@
+// Derived from schema_analysis 0.7.0, MIT OR Apache-2.0.
+// See licenses/schema_analysis for attribution and maintained-source provenance.
+
 use std::marker::PhantomData;
 
 use serde::de::{DeserializeSeed, Error, Visitor};
 
-use crate::Field;
+use crate::engine::Field;
 
 use super::{Context, schema::SchemaVisitor, schema_seed::SchemaVisitorSeed};
 
