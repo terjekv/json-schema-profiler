@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.0.1] - 2026-10-25
+
+Prepared for the first publication; the crate has not yet been uploaded.
+
 ### Added
 
 - Standalone inventory status-enum walkthrough covering scoped value retention,
@@ -89,8 +93,8 @@
 - Replace repeated linear object-key scans in a local `schema_analysis` 0.7.0
   copy with field-indexed presence flags. Small objects require no new allocations;
   wider objects use temporary storage proportional to their fields. Public APIs and report
-  semantics are unchanged. Adopt a released upstream fix or an explicit packaging
-  alternative before publishing; the local dependency remains unpublished.
+  semantics are unchanged. The maintained core is now bundled in the archive;
+  the original registry release remains a development-only comparison baseline.
 - **Breaking:** `Profile::suggest` now returns `Result<Suggestion, InferenceError>`;
   callers must handle output-budget errors before examining a suggestion. Use
   `suggest_with` for per-path policies and custom output limits.
@@ -98,4 +102,4 @@
   policy, overrides and output limits) instead of a single `policy` field;
   profile field reports now include document evidence. Update report consumers.
 
-No version has been released; `publish = false` remains set.
+Publication is intentionally enabled for crates.io only. No version has yet been published.

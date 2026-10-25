@@ -7,7 +7,7 @@ The bundled core includes an [object-presence optimization](https://github.com/t
 and ships inside the Cargo archive. Attribution and maintained-source provenance
 are recorded in the [engine notices](https://github.com/terjekv/json-schema-profiler/blob/main/licenses/schema_analysis/README.md).
 
-**Status: v0.0.1 implementation, unreleased.** Profiling, document evidence,
+**Status: v0.0.1 prepared for publication; not yet published.** Profiling, document evidence,
 subtree selection, per-path policies, candidate generation and bounded replay
 validation are implemented. Rust 1.90 or newer is required.
 Structural discovery, graduated inference policies and owned-record replay are available.

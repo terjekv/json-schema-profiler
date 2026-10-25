@@ -101,9 +101,10 @@ supplied replay, including its effective format policy.
 Profiling input is incremental borrowed `serde_json::Value`, not a streaming JSON parser.
 Replay also accepts owned records parsed on demand by the consumer.
 Parsing memory belongs to the caller, and selection still examines object keys
-to find the selected ones. We do not retain document scalar values, discover
-cross-field correlations, merge independent profiles, remove documents, or infer
-enums, ranges, formats, dictionaries or tuple schemas.
+to find the selected ones. Default profiling retains no document scalar values;
+explicit bounded string collection now supports tunable enum detection and
+generation. We do not discover cross-field correlations, merge independent
+profiles, remove documents, or infer ranges, formats, dictionaries or tuple schemas.
 
 ## Measured costs
 
@@ -116,6 +117,6 @@ semantics or canonical queryable report.
 The engine remains reusable after adding document witnesses: they fit in the
 existing admission index. Keep the upstream correctness/performance proposals
 focused; broader reference support or streaming parsing can be separate future
-work. The repository is public; the crate remains unreleased with publication
-disabled. The [consumer trial](consumer-trial.md) exercises application ownership
-and replay, while the [release audit](release.md) records packaging resolution and publication gates.
+work. The repository is public; the crate is prepared for its first publication.
+The [consumer trial](consumer-trial.md) exercises application ownership and replay,
+while the [release audit](release.md) records packaging resolution and publication state.

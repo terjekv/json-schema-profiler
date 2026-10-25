@@ -1,15 +1,17 @@
 # Release readiness and compatibility
 
-The implementation targets v0.0.1 and remains unreleased with `publish = false`.
+Version 0.0.1 is prepared for publication, but has not yet been uploaded or tagged.
+Publication is intentionally enabled for crates.io only with
+`publish = ["crates-io"]`. README, manifest and dated changelog agree on this state.
 The source repository is [terjekv/json-schema-profiler](https://github.com/terjekv/json-schema-profiler).
-Publication remains intentionally disabled. The 2026-10-03 follow-up resolves
+The 2026-10-03 packaging follow-up resolved
 [issue #9](https://github.com/terjekv/json-schema-profiler/issues/9) in the working
 implementation by packaging a private maintained aggregation core directly in
 `src/engine`. Its object-presence optimization is included in every archive, and
 there is only one development dependency on registry `schema_analysis` 0.7.0.
 `cargo package --allow-dirty --locked --offline` now verifies successfully.
 `--allow-dirty` permits testing the working changes; it does not bypass verification. The
-verified archive contains 81 files, including the private engine, tests, examples,
+archive at that revision contained 81 files, including the private engine, tests, examples,
 benchmark targets, installer scripts, and original license notices. A fresh
 application using only the extracted archive passes accepted, rejected and
 source-failed replay on stable and Rust 1.90. Its normal dependency graph contains
@@ -26,8 +28,9 @@ example and matched parse/replay benchmarks. Benchmark setup for
 [issue #11](https://github.com/terjekv/json-schema-profiler/issues/11) now uses the
 supported v1.3.0 composite action after repository-controlled bounded installation.
 Offline tests cover recovery, reuse, exhausted retries and timeout failure.
-The updated six-target hosted workflow still needs its own run and review before
-publication; local verification does not establish hosted performance acceptance.
+The updated six-target hosted workflow passed and was reviewed for
+[PR #12](https://github.com/terjekv/json-schema-profiler/pull/12), with the exact
+coverage and remaining publication action recorded below.
 
 ## Pre-release issue review (2026-10-25)
 
@@ -38,16 +41,29 @@ and source-failed replay; its normal graph contains no `schema_analysis` runtime
 dependency or checkout path. Required upstream license notices remain included.
 All 180 locked dependency entries match the license inventory.
 
-| Issue | Evidence required before closure |
+| Issue | Verified resolution in PR #12 |
 | --- | --- |
-| [#7: owned replay](https://github.com/terjekv/json-schema-profiler/issues/7) | Owned replay regressions, on-demand reader example and documented borrowed/owned comparison are implemented; merge the verified change |
-| [#9: engine distribution](https://github.com/terjekv/json-schema-profiler/issues/9) | Archive and external-consumer checks pass on stable/MSRV; review hosted benchmark coverage and merge the distribution fix |
-| [#11: benchmark setup](https://github.com/terjekv/json-schema-profiler/issues/11) | Offline recovery, reuse, exhaustion and timeout checks pass; complete and review the six-target hosted comparison before merging |
+| [#7: owned replay](https://github.com/terjekv/json-schema-profiler/issues/7) | Owned replay regressions, on-demand reader example and documented borrowed/owned comparison pass |
+| [#9: engine distribution](https://github.com/terjekv/json-schema-profiler/issues/9) | Archive and external-consumer checks pass on stable/MSRV; hosted benchmark coverage is complete for unchanged cases |
+| [#11: benchmark setup](https://github.com/terjekv/json-schema-profiler/issues/11) | Offline recovery, reuse, exhaustion and timeout checks pass; six-target hosted comparison and setup evidence are reviewed |
 
-Close resolved issues through the fixing pull request after its checks pass.
-Keep failed setup attempts and comparison artifacts as evidence. Publication
-remains disabled until the hosted comparison and intentional release preparation
-are complete.
+Hosted [CI](https://github.com/terjekv/json-schema-profiler/actions/runs/40185961081)
+passes stable and Rust 1.90, including package verification and the inventory
+walkthrough. The [benchmark run](https://github.com/terjekv/json-schema-profiler/actions/runs/40185961056)
+compares `417c311` with `39947fa` on all six targets. All 78 unchanged timing cases
+and 29 unchanged instruction cases have both measurements. The 44 timing and
+13 instruction baseline renames map exactly to their new `published_` identities;
+their upstream implementation changed, so these are not comparable old/new pairs.
+All 14 newly added timing cases are present. Totals are 122 base/136 head timing
+cases and 42 instruction cases on each revision. No expected measurement is lost.
+
+The largest paired increases are 10.18% timing and 0.28% instructions, below the
+unchanged 15%/3% gates. No exceptions or retries were used. Valgrind installation
+succeeded on attempt one; `benchmark-evidence-40185961056-1` preserves setup logs,
+the report and build/cache data. See the [full report](https://github.com/terjekv/json-schema-profiler/pull/12#issuecomment-6396879148).
+
+The fixing merge closes the three issues. Release preparation does not upload a
+crate or create a tag; publication remains a separate intentional action.
 
 ## Historical audit results (2026-10-01)
 
@@ -173,11 +189,11 @@ On 2026-10-25 the public Cargo sparse-index entries for `json-schema-profiler`
 and `json_schema_profiler` both returned HTTP 404 (`NoSuchKey`); the intended
 docs.rs page returned 404 in the original 2026-10-01 audit. Neither spelling appeared indexed;
 this is not a name reservation or a guarantee of publishing rights. Recheck
-availability when intentionally preparing publication.
+availability again immediately before uploading the crate.
 
-Before publication, review hosted CI/benchmark comparison results,
-prepare dated 0.0.1 changelog/README release entries,
-and intentionally remove `publish = false`.
+Hosted CI/benchmark review and dated 0.0.1 changelog/README preparation are complete.
+The manifest intentionally permits crates.io publication. Publish the verified
+archive and create a signed release tag only when performing the actual release.
 
 ## Compatibility
 

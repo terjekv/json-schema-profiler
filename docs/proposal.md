@@ -376,7 +376,7 @@ Release gates:
 At proposal time, the repository scaffold had no implementation dependencies;
 version selection belonged to the reuse spike. The implementation now pins its
 inference and validation adapters. See the [release audit](release.md) for the
-current dependency and packaging state. Package publication remains disabled.
+current dependency, packaging and publication state.
 
 ## A later consuming-application integration
 

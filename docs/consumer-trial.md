@@ -130,8 +130,8 @@ same synthetic source strings in both variants. Borrowed replay retains 1,024
 parsed values; owned replay holds one at a time. Source storage is outside that
 comparison. Timings are integration costs, not peak-memory guarantees.
 
-No library API change was required for this trial. The root crate remains generic,
-and publication remains disabled pending the separate release audit.
+No library API change was required for the original inventory trial. The root
+crate remains generic; see [release readiness](release.md) for publication status.
 
 ### Owned replay follow-up measurement (2026-10-03)
 

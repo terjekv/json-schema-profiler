@@ -8,7 +8,7 @@ repository = "https://github.com/terjekv/json-schema-profiler"
 documentation = "https://docs.rs/json-schema-profiler"
 license = "MIT"
 readme = "README.md"
-publish = false
+publish = ["crates-io"]
 keywords = ["json", "json-schema", "profiling", "validation"]
 categories = ["data-structures", "encoding"]
 
