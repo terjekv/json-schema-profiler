@@ -1,8 +1,8 @@
 # Release readiness and compatibility
 
-Version 0.0.1 is prepared for publication, but has not yet been uploaded or tagged.
-Publication is intentionally enabled for crates.io only with
-`publish = ["crates-io"]`. README, manifest and dated changelog agree on this state.
+Version 0.0.1 is the first release, requiring Rust 1.90 or newer. The manifest
+permits publication to crates.io only with `publish = ["crates-io"]`.
+README, manifest and dated changelog describe the same release.
 The source repository is [terjekv/json-schema-profiler](https://github.com/terjekv/json-schema-profiler).
 The 2026-10-03 packaging follow-up resolved
 [issue #9](https://github.com/terjekv/json-schema-profiler/issues/9) in the working
@@ -62,8 +62,9 @@ unchanged 15%/3% gates. No exceptions or retries were used. Valgrind installatio
 succeeded on attempt one; `benchmark-evidence-40185961056-1` preserves setup logs,
 the report and build/cache data. See the [full report](https://github.com/terjekv/json-schema-profiler/pull/12#issuecomment-6396879148).
 
-The fixing merge closes the three issues. Release preparation does not upload a
-crate or create a tag; publication remains a separate intentional action.
+The fixing merge closes the three issues. Final release verification also checks
+the published registry package and docs.rs build. The signed `v0.0.1` tag identifies
+the exact published source revision.
 
 ## Historical audit results (2026-10-01)
 
@@ -185,15 +186,15 @@ dependencies. This library uses MIT.
 
 ## Naming and publication
 
-On 2026-10-25 the public Cargo sparse-index entries for `json-schema-profiler`
+During the 2026-10-25 publication preflight, the public Cargo sparse-index entries for `json-schema-profiler`
 and `json_schema_profiler` both returned HTTP 404 (`NoSuchKey`); the intended
 docs.rs page returned 404 in the original 2026-10-01 audit. Neither spelling appeared indexed;
-this is not a name reservation or a guarantee of publishing rights. Recheck
-availability again immediately before uploading the crate.
+this was not a name reservation or a guarantee of publishing rights.
 
 Hosted CI/benchmark review and dated 0.0.1 changelog/README preparation are complete.
-The manifest intentionally permits crates.io publication. Publish the verified
-archive and create a signed release tag only when performing the actual release.
+The manifest intentionally permits crates.io publication. For releases, publish
+the verified archive, create a signed tag at its source commit, and verify a fresh
+consumer using the registry dependency rather than a checkout path.
 
 ## Compatibility
 

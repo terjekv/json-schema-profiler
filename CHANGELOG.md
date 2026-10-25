@@ -4,7 +4,7 @@
 
 ## [0.0.1] - 2026-10-25
 
-Prepared for the first publication; the crate has not yet been uploaded.
+First release. Rust 1.90 or newer is required.
 
 ### Added
 
@@ -102,4 +102,4 @@ Prepared for the first publication; the crate has not yet been uploaded.
   policy, overrides and output limits) instead of a single `policy` field;
   profile field reports now include document evidence. Update report consumers.
 
-Publication is intentionally enabled for crates.io only. No version has yet been published.
+The crate is distributed through crates.io under the MIT license.

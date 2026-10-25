@@ -7,13 +7,21 @@ The bundled core includes an [object-presence optimization](https://github.com/t
 and ships inside the Cargo archive. Attribution and maintained-source provenance
 are recorded in the [engine notices](https://github.com/terjekv/json-schema-profiler/blob/main/licenses/schema_analysis/README.md).
 
-**Status: v0.0.1 prepared for publication; not yet published.** Profiling, document evidence,
+**Version 0.0.1.** Profiling, document evidence,
 subtree selection, per-path policies, candidate generation and bounded replay
 validation are implemented. Rust 1.90 or newer is required.
 Structural discovery, graduated inference policies and owned-record replay are available.
 The crate is generic and has no database, web framework, or runtime dependency.
 
 ## Use
+
+Add the library and JSON input support to your manifest:
+
+```toml
+[dependencies]
+json-schema-profiler = "0.0.1"
+serde_json = { version = "1", features = ["arbitrary_precision"] }
+```
 
 ```rust
 use json_schema_profiler::{InferencePolicy, JsonKind, ProfilePath, Profiler, Suggestion};
